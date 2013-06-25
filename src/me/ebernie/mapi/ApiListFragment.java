@@ -16,10 +16,10 @@ import android.app.ActionBar;
 import android.app.ActionBar.OnNavigationListener;
 import android.app.Fragment;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -36,6 +36,8 @@ import com.google.common.collect.Multimap;
 public class ApiListFragment extends Fragment implements
 		PersistableDataListener, OnNavigationListener, OnRefreshListener {
 
+	private final String LOG_TAG = ApiListFragment.class.getName();
+
 	private Multimap<String, AirPolutionIndex> indices = HashMultimap.create();
 	private GridView grid;
 	private ArrayAdapter<String> navAdapter;
@@ -44,13 +46,12 @@ public class ApiListFragment extends Fragment implements
 	private Typeface robotoLightItalic = null;
 	private Typeface robotoLight = null;
 	private PullToRefreshAttacher pullToRefreshHelper;
-	private static final String PREF_KEY_STATE_SELECTION = "state_selection";
+
+	// private static final String PREF_KEY_STATE_SELECTION = "state_selection";
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		// async call to fetch AirPolutionIndex
-		DataApi.INSTANCE.getIndex(getActivity(), this);
 		setRetainInstance(true);
 		setHasOptionsMenu(true);
 		robotoLightItalic = Typeface.createFromAsset(getActivity().getAssets(),
@@ -63,10 +64,6 @@ public class ApiListFragment extends Fragment implements
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.menu, menu);
-	}
-
-	public void setPullToRefreshHelper(PullToRefreshAttacher pullToRefreshHelper) {
-		this.pullToRefreshHelper = pullToRefreshHelper;
 	}
 
 	@Override
@@ -87,6 +84,10 @@ public class ApiListFragment extends Fragment implements
 			Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_api_list, null);
 		grid = (GridView) view.findViewById(R.id.gridView_api);
+		View emptyView = view.findViewById(R.id.empty_layout);
+		TextView emptyText = (TextView) emptyView.findViewById(R.id.empty_text);
+		emptyText.setTypeface(robotoLight);
+		grid.setEmptyView(view.findViewById(R.id.empty_layout));
 		PullToRefreshAttacher.ViewDelegate handler = new AbsListViewDelegate();
 		pullToRefreshHelper = ((MainActivity) getActivity())
 				.getPullToRefreshHelper();
@@ -97,11 +98,15 @@ public class ApiListFragment extends Fragment implements
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-		getActivity().getActionBar().setListNavigationCallbacks(navAdapter,
-				ApiListFragment.this);
+		ActionBar ab = getActivity().getActionBar();
+		ab.setListNavigationCallbacks(navAdapter, ApiListFragment.this);
 		if (!indices.isEmpty()) {
-			getActivity().getActionBar().setSelectedNavigationItem(
-					currentSelection);
+			ab.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+			ab.setSelectedNavigationItem(currentSelection);
+		} else {
+			// async call to fetch AirPolutionIndex
+			pullToRefreshHelper.setRefreshing(true);
+			DataApi.INSTANCE.getIndex(getActivity(), this);
 		}
 	}
 
@@ -155,7 +160,7 @@ public class ApiListFragment extends Fragment implements
 				holder.time2.setText(R.string.five);
 				holder.index2.setText(index.getFivePmIndex());
 				holder.index2.setTextColor(getColor(index.getFivePmIndex()));
-				
+
 			} else if (currentTime.after(elevenAm)
 					&& currentTime.before(fivePm)) {
 				// if 11 am has data, just show
@@ -236,7 +241,11 @@ public class ApiListFragment extends Fragment implements
 			int color = Color.parseColor("#000000");
 			int val = 0;
 			if (hasData(valStr)) {
-				val = Integer.valueOf(valStr);
+				try {
+					val = Integer.valueOf(valStr);
+				} catch (Exception e) {
+					Log.e(LOG_TAG, "Invalid index value? ", e);
+				}
 			}
 			if (val > 0 && val <= 50) {
 				color = Color.parseColor("#00a651");
@@ -298,7 +307,17 @@ public class ApiListFragment extends Fragment implements
 	@Override
 	public void updateList(List<AirPolutionIndex> index) {
 
+		pullToRefreshHelper.setRefreshComplete();
+
+		if (getActivity() == null) {
+			return;
+		}
+
+		ActionBar ab = getActivity().getActionBar();
 		if (index != null) {
+			grid.setVisibility(View.VISIBLE);
+			grid.getEmptyView().setVisibility(View.GONE);
+
 			indices.clear();
 			indices.put(getString(R.string.all_states), null);
 			for (AirPolutionIndex api : index) {
@@ -307,19 +326,8 @@ public class ApiListFragment extends Fragment implements
 				}
 			}
 
-			// test data
-			AirPolutionIndex sevenamnodata = new AirPolutionIndex(
-					"Test no data 7 am", "Kedah", "", "", "");
-			indices.put(sevenamnodata.getState(), sevenamnodata);
-			AirPolutionIndex elevenamnodata = new AirPolutionIndex(
-					"Test no data 11 am", "Kedah", "7", "", "");
-			indices.put(elevenamnodata.getState(), elevenamnodata);
-			AirPolutionIndex fivepmnodata = new AirPolutionIndex(
-					"Test no data 5 pm", "Kedah", "7", "11", "");
-			indices.put(fivepmnodata.getState(), fivepmnodata);
-
 			// prep actionbar nav list
-			ActionBar ab = getActivity().getActionBar();
+			ab.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 			String[] states = new String[indices.keySet().size()];
 			TreeSet<String> sort = new TreeSet<String>();
 			sort.addAll(indices.keySet());
@@ -330,17 +338,20 @@ public class ApiListFragment extends Fragment implements
 			ab.setSelectedNavigationItem(currentSelection);
 			indices.remove(getString(R.string.all_states), null);
 
-			SharedPreferences prefs = getActivity().getSharedPreferences(
-					"me.ebernie.mapi", Context.MODE_PRIVATE);
-			int selection = prefs.getInt(PREF_KEY_STATE_SELECTION, 0);
-			if (selection != 0) {
-				currentSelection = selection;
-				getActivity().getActionBar().setSelectedNavigationItem(
-						currentSelection);
-			}
+			// SharedPreferences prefs = getActivity().getSharedPreferences(
+			// "me.ebernie.mapi", Context.MODE_PRIVATE);
+			// int selection = prefs.getInt(PREF_KEY_STATE_SELECTION, 0);
+			// if (selection != 0
+			// && ab.getNavigationItemCount() > currentSelection) {
+			// currentSelection = selection;
+			// ab.setSelectedNavigationItem(currentSelection);
+			// }
+		} else if (indices.isEmpty()) {
+			// show emptyView
+			grid.setVisibility(View.GONE);
+			grid.getEmptyView().setVisibility(View.VISIBLE);
+			ab.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 		}
-
-		pullToRefreshHelper.setRefreshComplete();
 	}
 
 	@Override
@@ -353,10 +364,10 @@ public class ApiListFragment extends Fragment implements
 	public boolean onNavigationItemSelected(int itemPosition, long itemId) {
 		currentSelection = itemPosition;
 		refreshScreenBasedOnSelection();
-		SharedPreferences prefs = getActivity().getSharedPreferences(
-				"me.ebernie.mapi", Context.MODE_PRIVATE);
-		prefs.edit().putInt(PREF_KEY_STATE_SELECTION, currentSelection)
-				.commit();
+		// SharedPreferences prefs = getActivity().getSharedPreferences(
+		// "me.ebernie.mapi", Context.MODE_PRIVATE);
+		// prefs.edit().putInt(PREF_KEY_STATE_SELECTION, currentSelection)
+		// .commit();
 		return true;
 	}
 

@@ -21,11 +21,9 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
-import com.android.volley.Response.ErrorListener;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
@@ -42,10 +40,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	private static final int SCHEMA_VERSION = 1;
 	private static final String DB_NAME = "mapi.db";
 	private final Context context;
-	private RequestQueue rqueue;
+	private static RequestQueue rqueue;
 	private static final String HAZE_URL = "http://66.175.221.183/hazewatch/";
 	private static final String COL_AREA = "area";
-//	private static final String COL_TOWN = "town";
+	// private static final String COL_TOWN = "town";
 	private static final String COL_STATE = "state";
 	private static final String COL_TIME1 = "time1";
 	private static final String COL_TIME2 = "time2";
@@ -62,6 +60,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	public static final synchronized DatabaseHelper getInstance(Context context) {
 		if (instance == null) {
 			instance = new DatabaseHelper(context, null);
+		}
+		if (rqueue == null) {
+			rqueue = Volley.newRequestQueue(context);
 		}
 		return instance;
 	}
@@ -134,7 +135,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				}
 				db.setTransactionSuccessful();
 			} finally {
-				db.endTransaction();
+				try {
+					db.endTransaction();
+				} catch (Exception e) {
+					Log.e(TAG, "Unable to save index", e);
+				}
 			}
 			return null;
 		}
@@ -169,16 +174,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 							.getColumnIndex(COL_LAST_UPDATE));
 					Calendar cal = Calendar.getInstance();
 					cal.setTime(new Date(time));
-					cal.add(Calendar.MINUTE, 1);
+					cal.add(Calendar.HOUR_OF_DAY, 2);
 					Date curTime = Calendar.getInstance().getTime();
 					if (!curTime.after(cal.getTime())) {
 						// fetch from network if there's no fresh data
-						getIndexFromNetwork();
+						getIndexFromNetwork(listener);
 						networkFetch = true;
 					}
 				} else {
 					// first time running this app
-					getIndexFromNetwork();
+					getIndexFromNetwork(listener);
 					networkFetch = true;
 				}
 
@@ -188,8 +193,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 							"SELECT * FROM api_data", null);
 					indexCursor.moveToFirst();
 					while (!indexCursor.isAfterLast()) {
-//						String town = indexCursor.getString(indexCursor
-//								.getColumnIndex(COL_TOWN));
+						// String town = indexCursor.getString(indexCursor
+						// .getColumnIndex(COL_TOWN));
 						String area = indexCursor.getString(indexCursor
 								.getColumnIndex(COL_AREA));
 						String state = indexCursor.getString(indexCursor
@@ -223,131 +228,97 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		protected void onPostExecute(List<AirPolutionIndex> result) {
 			listener.updateList(result);
 		}
-
-		private ErrorListener errorListener = new ErrorListener() {
-
-			@Override
-			public void onErrorResponse(final VolleyError error) {
-				((Activity) context).runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						Toast.makeText(context, "Unable to fetch API data",
-								Toast.LENGTH_LONG).show();
-						Log.e(TAG, error.getMessage(), error);
-						listener.updateList(null);
-					}
-				});
-			}
-		};
-
-		private void getIndexFromNetwork() {
-			if (rqueue == null) {
-				rqueue = Volley.newRequestQueue(context);
-			}
-			fetchData();
-			// new JsonObjectRequest(url, jsonRequest, listener, errorListener)
-			// rqueue.add(new JsonObjectRequest(HAZE_URL, new JSONObject(),
-			// new Response.Listener<JSONObject>() {
-			// @Override
-			// public void onResponse(JSONObject jsonObject) {
-			// try {
-			// if (!"204".equals(jsonObject.get("status"))) {
-			// fetchData();
-			// }
-			// } catch (JSONException e) {
-			// e.printStackTrace();
-			// }
-			// }
-			// }, errorListener));
-		}
-
-		public void fetchData() {
-			 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-			 String date = df.format(new Date());
-			 String param = "?date=" + "2013-06-26";
-
-			rqueue.add(new JsonArrayRequest(HAZE_URL + param,
-					new Response.Listener<JSONArray>() {
-						@Override
-						public void onResponse(JSONArray jsonArray) {
-							Gson gson = new Gson();
-							Type type = new TypeToken<List<AirPolutionIndex>>() {
-							}.getType();
-							List<AirPolutionIndex> indices = gson.fromJson(
-									jsonArray.toString(), type);
-							listener.updateList(indices);
-							// also perform a save to the db after a network
-							// fetch
-							DatabaseHelper.getInstance(context).saveIndex(
-									indices);
-						}
-					}, errorListener));
-		}
-
-	}
-	
-	public void getIndexFromNetwork(PersistableDataListener listener) {
-		new GetIndexFromNetworkTask(listener).execute();
 	}
 
-	private class GetIndexFromNetworkTask extends
-			AsyncTask<Void, Void, Void> {
+	private class RetryingErrorListener implements Response.ErrorListener {
 
 		private final PersistableDataListener listener;
+		private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-		public GetIndexFromNetworkTask(PersistableDataListener listener) {
+		public RetryingErrorListener(PersistableDataListener listener) {
 			this.listener = listener;
 		}
 
 		@Override
-		protected Void doInBackground(Void... params) {
+		public void onErrorResponse(final VolleyError error) {
 
-			if (rqueue == null) {
-				rqueue = Volley.newRequestQueue(context);
-			}
+			((Activity) context).runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Log.e(TAG, error.getMessage(), error);
+					Calendar yesterday = Calendar.getInstance();
+					yesterday.set(Calendar.DAY_OF_MONTH,
+							yesterday.get(Calendar.DAY_OF_MONTH) - 1);
+					String param = "?date=" + sdf.format(yesterday.getTime());
+					getIndexFromNetwork(listener, param);
+					listener.updateList(null);
+				}
+			});
+		}
+	}
+	
+	private class ErrorListener implements Response.ErrorListener {
 
-			// SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-			// String date = df.format(new Date());
-			// TODO for testing, remove me!
-			// String param = "?date=" + "2013-06-24";
+		private final PersistableDataListener listener;
 
-			rqueue.add(new JsonArrayRequest(HAZE_URL,
-					new Response.Listener<JSONArray>() {
-						@Override
-						public void onResponse(JSONArray jsonArray) {
-							Gson gson = new Gson();
-							Type type = new TypeToken<List<AirPolutionIndex>>() {
-							}.getType();
-							List<AirPolutionIndex> indices = gson.fromJson(
-									jsonArray.toString(), type);
-							listener.updateList(indices);
-							// also perform a save to the db after a network
-							// fetch
-							DatabaseHelper.getInstance(context).saveIndex(
-									indices);
-						}
-					}, errorListener));
-			
-			return null;
+		public ErrorListener(PersistableDataListener listener) {
+			this.listener = listener;
 		}
 
-		private ErrorListener errorListener = new ErrorListener() {
+		@Override
+		public void onErrorResponse(final VolleyError error) {
 
-			@Override
-			public void onErrorResponse(final VolleyError error) {
-				((Activity) context).runOnUiThread(new Runnable() {
+			((Activity) context).runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Log.e(TAG, error.getMessage(), error);
+					listener.updateList(null);
+				}
+			});
+		}
+	}
 
+	private RetryingErrorListener retryingErrorListener;
+	private ErrorListener nonRetryingErrorListener;
+
+	public void getIndexFromNetwork(final PersistableDataListener listener,
+			String params) {
+		String requestUri = params == null ? HAZE_URL : HAZE_URL + params;
+		if (retryingErrorListener == null) {
+			retryingErrorListener = new RetryingErrorListener(listener);
+		}
+		
+		if (nonRetryingErrorListener == null) {
+			nonRetryingErrorListener = new ErrorListener(listener);
+		}
+		
+		Response.ErrorListener errorListener; 
+		// if the request is for today (no params), then it is possible
+		// that we will fail, hence the error listener will attempt to retry
+		if (params == null) {
+			errorListener = retryingErrorListener;
+		} else {
+			errorListener = nonRetryingErrorListener;
+		}
+		rqueue.add(new JsonArrayRequest(requestUri,
+				new Response.Listener<JSONArray>() {
 					@Override
-					public void run() {
-						Toast.makeText(context, "Unable to fetch API data",
-								Toast.LENGTH_LONG).show();
-						Log.e(TAG, error.getMessage(), error);
-						listener.updateList(null);
+					public void onResponse(JSONArray jsonArray) {
+						Gson gson = new Gson();
+						Type type = new TypeToken<List<AirPolutionIndex>>() {
+						}.getType();
+						List<AirPolutionIndex> indices = gson.fromJson(
+								jsonArray.toString(), type);
+						listener.updateList(indices);
+						// also perform a save to the db after a network
+						// fetch
+						DatabaseHelper.getInstance(context).saveIndex(indices);
 					}
-				});
-			}
-		};
+				}, errorListener));
+	}
 
+	public void getIndexFromNetwork(final PersistableDataListener listener) {
+		getIndexFromNetwork(listener, null);
 	}
 
 	public void getIndex(PersistableDataListener listener) {

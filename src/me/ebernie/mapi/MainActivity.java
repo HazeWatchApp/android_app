@@ -17,7 +17,6 @@ public class MainActivity extends Activity {
 
 		ActionBar ab = getActionBar();
 		ab.setIcon(R.drawable.hazeicon);
-		ab.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 		ab.setTitle(null);
 
 		Fragment fragment = getFragmentManager().findFragmentById(android.R.id.content);
