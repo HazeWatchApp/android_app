@@ -13,6 +13,7 @@
         android:layout_marginLeft="8dp"
         android:layout_height="wrap_content"
         android:text="Balok Baru, Kuantan"
+        android:maxLines="1"
         android:textSize="22sp" />
 
     <RelativeLayout
