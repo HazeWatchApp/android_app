@@ -65,7 +65,7 @@ public class AirPolutionIndex implements Comparable<AirPolutionIndex>{
 
 	@Override
 	public int compareTo(AirPolutionIndex another) {
-		return this.area.compareTo(another.area);
+		return (this.state + this.area).compareTo(another.state + another.area);
 	}
 
 }
