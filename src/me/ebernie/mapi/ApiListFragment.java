@@ -266,10 +266,14 @@ public class ApiListFragment extends Fragment implements
 		ab.setListNavigationCallbacks(navAdapter, ApiListFragment.this);
 		ab.setSelectedNavigationItem(currentSelection);
 		indices.remove(getString(R.string.all_states), null);
-//		tmp.clear();
-//		tmp.addAll(indices.values());
-//		grid.setAdapter(new AirPolutionIndexAdapter(getActivity(),
-//				R.layout.fragment_api_list_row, tmp));
+
+		SharedPreferences prefs = getActivity().getSharedPreferences(
+				"me.ebernie.mapi", Context.MODE_PRIVATE);
+		int selection = prefs.getInt(PREF_KEY_STATE_SELECTION, 0);
+		if (selection != 0) {
+			currentSelection = selection;
+			getActivity().getActionBar().setSelectedNavigationItem(currentSelection);
+		}
 
 		pullToRefreshHelper.setRefreshComplete();
 	}
@@ -280,18 +284,6 @@ public class ApiListFragment extends Fragment implements
 		DataApi.INSTANCE.destroy();
 	}
 	
-	@Override
-	public void onResume() {
-		super.onResume();
-		SharedPreferences prefs = getActivity().getSharedPreferences(
-			      "me.ebernie.mapi", Context.MODE_PRIVATE);
-		int selection = prefs.getInt(PREF_KEY_STATE_SELECTION, 0);
-		if (selection != 0) {
-			currentSelection = selection;
-			getActivity().getActionBar().setSelectedNavigationItem(currentSelection);
-		}
-	}
-
 	@Override
 	public boolean onNavigationItemSelected(int itemPosition, long itemId) {
 		currentSelection = itemPosition;
