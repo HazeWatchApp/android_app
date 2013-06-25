@@ -17,6 +17,7 @@ import android.app.ActionBar;
 import android.app.ActionBar.OnNavigationListener;
 import android.app.Fragment;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -140,71 +141,87 @@ public class ApiListFragment extends Fragment implements
 			if (currentDate.after(sevenAm) && currentDate.before(elevenAm)) {
 				holder.curTimeIndex.setText(index.getTime1());
 				holder.curTime.setText(R.string.seven);
-				holder.curTimeIndex.setTextColor(getResources().getColor(
-						getColor(index.getTime1())));
+				holder.curTimeIndex.setTextColor(
+						getColor(index.getTime1()));
 
 				holder.time1.setText(R.string.eleven);
 				holder.index1.setText(index.getTime2());
-				holder.index2.setTextColor(getResources().getColor(
-						getColor(index.getTime2())));
+				holder.index2.setTextColor(
+						getColor(index.getTime2()));
 
 				holder.time2.setText(R.string.five);
 				holder.index2.setText(index.getTime3());
-				holder.index2.setTextColor(getResources().getColor(
-						getColor(index.getTime3())));
+				holder.index2.setTextColor(
+						getColor(index.getTime3()));
 
 			} else if (currentDate.after(elevenAm)
 					&& currentDate.before(fivePm)) {
 				holder.curTimeIndex.setText(index.getTime2());
 				holder.curTime.setText(R.string.eleven);
-				holder.curTimeIndex.setTextColor(getResources().getColor(
-						getColor(index.getTime2())));
+				holder.curTimeIndex.setTextColor(
+						getColor(index.getTime2()));
 
 				holder.time1.setText(R.string.seven);
 				holder.index1.setText(index.getTime1());
-				holder.index1.setTextColor(getResources().getColor(
-						getColor(index.getTime1())));
+				holder.index1.setTextColor(
+						getColor(index.getTime1()));
 
 				holder.time2.setText(R.string.five);
 				holder.index2.setText(index.getTime3());
-				holder.index2.setTextColor(getResources().getColor(
-						getColor(index.getTime3())));
+				holder.index2.setTextColor(
+						getColor(index.getTime3()));
 			} else {
 				holder.curTimeIndex.setText(index.getTime3());
 				holder.curTime.setText(R.string.five);
-				holder.curTimeIndex.setTextColor(getResources().getColor(
-						getColor(index.getTime3())));
+				holder.curTimeIndex.setTextColor(
+						getColor(index.getTime3()));
 
 				holder.time1.setText(R.string.seven);
 				holder.index1.setText(index.getTime1());
-				holder.index1.setTextColor(getResources().getColor(
-						getColor(index.getTime1())));
+				holder.index1.setTextColor(
+						getColor(index.getTime1()));
 
 				holder.time2.setText(R.string.eleven);
 				holder.index2.setText(index.getTime2());
-				holder.index2.setTextColor(getResources().getColor(
-						getColor(index.getTime2())));
+				holder.index2.setTextColor(
+						getColor(index.getTime2()));
 			}
 			return convertView;
 		}
 
 		private int getColor(String valStr) {
-			int color = android.R.color.black;
-			int val = android.R.color.black;
+			int color = Color.parseColor("#000000");
+			int val = 0;
 			if (!TextUtils.isEmpty(valStr) && !"--".equals(valStr)) {
 				val = Integer.valueOf(valStr);
 			}
 			if (val > 0 && val <= 50) {
-				color = android.R.color.holo_blue_dark;
+				color = Color.parseColor("#00a651");
 			} else if (val > 51 && val <= 100) {
-				color = android.R.color.holo_green_light;
+				color = Color.parseColor("#99cc00");
 			} else if (val > 100 && val <= 200) {
-				color = android.R.color.holo_orange_light;
+				color = Color.parseColor("#ffbb33");
 			} else if (val > 200 && val <= 300) {
-				color = android.R.color.holo_orange_dark;
+				color = Color.parseColor("#ff4444");
 			} else {
-				color = android.R.color.holo_red_light;
+				color = Color.parseColor("#cc0000");
 			}
+			
+//			int val = android.R.color.black;
+//			if (!TextUtils.isEmpty(valStr) && !"--".equals(valStr)) {
+//				val = Integer.valueOf(valStr);
+//			}
+//			if (val > 0 && val <= 50) {
+//				color = android.R.color.holo_blue_dark;
+//			} else if (val > 51 && val <= 100) {
+//				color = android.R.color.holo_green_light;
+//			} else if (val > 100 && val <= 200) {
+//				color = android.R.color.holo_orange_light;
+//			} else if (val > 200 && val <= 300) {
+//				color = android.R.color.holo_orange_dark;
+//			} else {
+//				color = android.R.color.holo_red_light;
+//			}
 			return color;
 		}
 
