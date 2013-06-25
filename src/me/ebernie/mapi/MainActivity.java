@@ -23,10 +23,6 @@ public class MainActivity extends Activity {
 		Fragment fragment = getFragmentManager().findFragmentById(android.R.id.content);
 		if (fragment == null) {
 			fragment = new ApiListFragment();
-			// this ugly call is here because retrieving mPullToRefreshHelper
-			// from within the fragment gave us a null :(
-//			((ApiListFragment) fragment)
-//					.setPullToRefreshHelper(mPullToRefreshHelper);
 			getFragmentManager().beginTransaction().add(android.R.id.content, fragment)
 					.commit();
 		}

@@ -44,7 +44,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	private RequestQueue rqueue;
 	private static final String HAZE_URL = "http://66.175.221.183/hazewatch/";
 	private static final String COL_AREA = "area";
-	private static final String COL_TOWN = "town";
+//	private static final String COL_TOWN = "town";
 	private static final String COL_STATE = "state";
 	private static final String COL_TIME1 = "time1";
 	private static final String COL_TIME2 = "time2";
