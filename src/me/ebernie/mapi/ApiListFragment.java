@@ -20,7 +20,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -121,10 +120,13 @@ public class ApiListFragment extends Fragment implements
 			this.layout = textViewResourceId;
 			Calendar cal = Calendar.getInstance();
 			cal.set(Calendar.HOUR_OF_DAY, 7);
+			cal.set(Calendar.MINUTE, 0);
 			sevenAm.setTime(cal.getTimeInMillis());
 			cal.set(Calendar.HOUR_OF_DAY, 11);
+			cal.set(Calendar.MINUTE, 0);
 			elevenAm.setTime(cal.getTimeInMillis());
 			cal.set(Calendar.HOUR_OF_DAY, 17);
+			cal.set(Calendar.MINUTE, 0);
 			fivePm.setTime(cal.getTimeInMillis());
 		}
 
@@ -141,102 +143,93 @@ public class ApiListFragment extends Fragment implements
 			holder.townArea.setText(index.getArea());
 
 			if (currentTime.before(elevenAm)) {
-				// if 'current' time has an index, we show it, otherwise stare
-				// at the haze icon
-				if (hasData(index.getTime1())) {
-//					holder.curTime.setVisibility(View.VISIBLE);
-//					holder.curTimeIndex.setVisibility(View.VISIBLE);
-//					holder.index1.setVisibility(View.VISIBLE);
-//					holder.index2.setVisibility(View.VISIBLE);
-//					holder.time1.setVisibility(View.VISIBLE);
-//					holder.time2.setVisibility(View.VISIBLE);
-//					holder.separator.setVisibility(View.VISIBLE);
-//					holder.empty.setVisibility(View.GONE);
-//					holder.emptyText.setVisibility(View.GONE);
-//					
-					holder.curTimeIndex.setText(index.getTime1());
-					holder.curTime.setText(R.string.seven);
-					holder.curTimeIndex
-							.setTextColor(getColor(index.getTime1()));
+				holder.curTimeIndex.setText(index.getSevenAmIndex());
+				holder.curTime.setText(R.string.seven);
+				holder.curTimeIndex.setTextColor(getColor(index
+						.getSevenAmIndex()));
 
-					holder.time1.setText(R.string.eleven);
-					holder.index1.setText(index.getTime2());
-					holder.index2.setTextColor(getColor(index.getTime2()));
+				holder.time1.setText(R.string.eleven);
+				holder.index1.setText(index.getElevenAmIndex());
+				holder.index2.setTextColor(getColor(index.getElevenAmIndex()));
 
-					holder.time2.setText(R.string.five);
-					holder.index2.setText(index.getTime3());
-					holder.index2.setTextColor(getColor(index.getTime3()));
-//				} else {
-//					holder.curTime.setVisibility(View.GONE);
-//					holder.curTimeIndex.setVisibility(View.GONE);
-//					holder.index1.setVisibility(View.GONE);
-//					holder.index2.setVisibility(View.GONE);
-//					holder.time1.setVisibility(View.GONE);
-//					holder.time2.setVisibility(View.GONE);
-//					holder.separator.setVisibility(View.GONE);
-//					holder.emptyText.setVisibility(View.VISIBLE);
-//					holder.empty.setVisibility(View.VISIBLE);
-				}
+				holder.time2.setText(R.string.five);
+				holder.index2.setText(index.getFivePmIndex());
+				holder.index2.setTextColor(getColor(index.getFivePmIndex()));
+				
 			} else if (currentTime.after(elevenAm)
 					&& currentTime.before(fivePm)) {
 				// if 11 am has data, just show
-				if (hasData(index.getTime2())) {
-					holder.curTimeIndex.setText(index.getTime2());
+				if (hasData(index.getElevenAmIndex())) {
+					holder.curTimeIndex.setText(index.getElevenAmIndex());
 					holder.curTime.setText(R.string.eleven);
-					holder.curTimeIndex
-							.setTextColor(getColor(index.getTime2()));
+					holder.curTimeIndex.setTextColor(getColor(index
+							.getElevenAmIndex()));
 
 					holder.time1.setText(R.string.seven);
-					holder.index1.setText(index.getTime1());
-					holder.index1.setTextColor(getColor(index.getTime1()));
+					holder.index1.setText(index.getSevenAmIndex());
+					holder.index1
+							.setTextColor(getColor(index.getSevenAmIndex()));
 				} else {
 					// if eleven am has no data, then show 7 am
-					holder.curTimeIndex.setText(index.getTime1());
+					holder.curTimeIndex.setText(index.getSevenAmIndex());
 					holder.curTime.setText(R.string.seven);
-					holder.curTimeIndex
-							.setTextColor(getColor(index.getTime1()));
-
+					holder.curTimeIndex.setTextColor(getColor(index
+							.getSevenAmIndex()));
+					// eleven am gets shown in the smaller display
 					holder.time1.setText(R.string.eleven);
-					holder.index1.setText(index.getTime2());
-					holder.index1.setTextColor(getColor(index.getTime2()));
+					holder.index1.setText(index.getElevenAmIndex());
+					holder.index1.setTextColor(getColor(index
+							.getElevenAmIndex()));
 				}
+
 				holder.time2.setText(R.string.five);
-				holder.index2.setText(index.getTime3());
-				holder.index2.setTextColor(getColor(index.getTime3()));
+				holder.index2.setText(index.getFivePmIndex());
+				holder.index2.setTextColor(getColor(index.getFivePmIndex()));
+
 			} else {
-				// if 5pm has no data, show eleven am data
-				if (hasData(index.getTime3())) {
-					holder.curTimeIndex.setText(index.getTime3());
+				// if 5pm has data, display as usual
+				if (hasData(index.getFivePmIndex())) {
+					holder.curTimeIndex.setText(index.getFivePmIndex());
 					holder.curTime.setText(R.string.five);
-					holder.curTimeIndex
-							.setTextColor(getColor(index.getTime3()));
+					holder.curTimeIndex.setTextColor(getColor(index
+							.getFivePmIndex()));
 
 					holder.time1.setText(R.string.seven);
-					holder.index1.setText(index.getTime1());
-					holder.index1.setTextColor(getColor(index.getTime1()));
+					holder.index1.setText(index.getSevenAmIndex());
+					holder.index1
+							.setTextColor(getColor(index.getSevenAmIndex()));
+
+					holder.time2.setText(R.string.eleven);
+					holder.index2.setText(index.getElevenAmIndex());
+					holder.index2.setTextColor(getColor(index
+							.getElevenAmIndex()));
 
 				} else {
-					holder.curTimeIndex.setText(index.getTime2());
+					// if 5pm has no data, show eleven am data
+					holder.curTimeIndex.setText(index.getElevenAmIndex());
 					holder.curTime.setText(R.string.eleven);
-					holder.curTimeIndex
-							.setTextColor(getColor(index.getTime2()));
+					holder.curTimeIndex.setTextColor(getColor(index
+							.getElevenAmIndex()));
 
-					holder.time1.setText(R.string.five);
-					holder.index1.setText(index.getTime3());
-					holder.index1.setTextColor(getColor(index.getTime3()));
+					holder.time1.setText(R.string.seven);
+					holder.index1.setText(index.getSevenAmIndex());
+					holder.index1
+							.setTextColor(getColor(index.getSevenAmIndex()));
+
+					holder.time2.setText(R.string.five);
+					holder.index2.setText(index.getFivePmIndex());
+					holder.index2
+							.setTextColor(getColor(index.getFivePmIndex()));
 
 				}
 
-				holder.time2.setText(R.string.eleven);
-				holder.index2.setText(index.getTime2());
-				holder.index2.setTextColor(getColor(index.getTime2()));
 			}
 
 			return convertView;
 		}
 
 		private boolean hasData(String val) {
-			return !TextUtils.isEmpty(val) && !"--".equals(val);
+			return !"--".equals(val);
 		}
 
 		private int getColor(String valStr) {
@@ -304,7 +297,7 @@ public class ApiListFragment extends Fragment implements
 
 	@Override
 	public void updateList(List<AirPolutionIndex> index) {
-		
+
 		if (index != null) {
 			indices.clear();
 			indices.put(getString(R.string.all_states), null);
@@ -313,18 +306,18 @@ public class ApiListFragment extends Fragment implements
 					indices.put(api.getState(), api);
 				}
 			}
-			
+
 			// test data
-//		AirPolutionIndex sevenamnodata = new AirPolutionIndex(
-//				"Test no data 7 am", "Kedah", "", "193", "50");
-//		indices.put(sevenamnodata.getState(), sevenamnodata);
-//		AirPolutionIndex elevenamnodata = new AirPolutionIndex(
-//				"Test no data 11 am", "Kedah", "191", "", "");
-//		indices.put(elevenamnodata.getState(), elevenamnodata);
-//		AirPolutionIndex fivepmnodata = new AirPolutionIndex(
-//				"Test no data 5 pm", "Kedah", "191", "333", "");
-//		indices.put(fivepmnodata.getState(), fivepmnodata);
-			
+			AirPolutionIndex sevenamnodata = new AirPolutionIndex(
+					"Test no data 7 am", "Kedah", "", "", "");
+			indices.put(sevenamnodata.getState(), sevenamnodata);
+			AirPolutionIndex elevenamnodata = new AirPolutionIndex(
+					"Test no data 11 am", "Kedah", "7", "", "");
+			indices.put(elevenamnodata.getState(), elevenamnodata);
+			AirPolutionIndex fivepmnodata = new AirPolutionIndex(
+					"Test no data 5 pm", "Kedah", "7", "11", "");
+			indices.put(fivepmnodata.getState(), fivepmnodata);
+
 			// prep actionbar nav list
 			ActionBar ab = getActivity().getActionBar();
 			String[] states = new String[indices.keySet().size()];
@@ -336,7 +329,7 @@ public class ApiListFragment extends Fragment implements
 			ab.setListNavigationCallbacks(navAdapter, ApiListFragment.this);
 			ab.setSelectedNavigationItem(currentSelection);
 			indices.remove(getString(R.string.all_states), null);
-			
+
 			SharedPreferences prefs = getActivity().getSharedPreferences(
 					"me.ebernie.mapi", Context.MODE_PRIVATE);
 			int selection = prefs.getInt(PREF_KEY_STATE_SELECTION, 0);

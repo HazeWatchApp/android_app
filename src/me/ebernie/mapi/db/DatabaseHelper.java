@@ -114,9 +114,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 					AirPolutionIndex index = (AirPolutionIndex) params[i];
 					values.put(COL_AREA, index.getArea());
 					values.put(COL_STATE, index.getState());
-					values.put(COL_TIME1, index.getTime1());
-					values.put(COL_TIME2, index.getTime2());
-					values.put(COL_TIME3, index.getTime3());
+					values.put(COL_TIME1, index.getSevenAmIndex());
+					values.put(COL_TIME2, index.getElevenAmIndex());
+					values.put(COL_TIME3, index.getFivePmIndex());
 					db.insert(TABLE_DATA_API, COL_AREA, values);
 				}
 

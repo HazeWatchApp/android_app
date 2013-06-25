@@ -11,20 +11,20 @@ public class AirPolutionIndex {
 	@SerializedName("negeri")
 	private final String state;
 	@SerializedName("pagi")
-	private final String time1;
+	private final String sevenAmIndex;
 	@SerializedName("tengah_hari")
-	private final String time2;
+	private final String elevenAmIndex;
 	@SerializedName("petang")
-	private final String time3;
+	private final String fivePmIndex;
 
-	public AirPolutionIndex(String area, String state, String time1,
-			String time2, String time3) {
+	public AirPolutionIndex(String area, String state, String sevenAmIndex,
+			String elevenAmIndex, String fivePmIndex) {
 		super();
 		this.area = area;
 		this.state = state;
-		this.time1 = time1;
-		this.time2 = time2;
-		this.time3 = time3;
+		this.sevenAmIndex = sevenAmIndex;
+		this.elevenAmIndex = elevenAmIndex;
+		this.fivePmIndex = fivePmIndex;
 	}
 
 	public String getArea() {
@@ -35,31 +35,31 @@ public class AirPolutionIndex {
 		return state;
 	}
 
-	public String getTime1() {
-		if (TextUtils.isEmpty(time1)) {
+	public String getSevenAmIndex() {
+		if (TextUtils.isEmpty(sevenAmIndex)) {
 			return "--";
 		}
-		return time1;
+		return sevenAmIndex;
 	}
 
-	public String getTime2() {
-		if (TextUtils.isEmpty(time2)) {
+	public String getElevenAmIndex() {
+		if (TextUtils.isEmpty(elevenAmIndex)) {
 			return "--";
 		}
-		return time2;
+		return elevenAmIndex;
 	}
 
-	public String getTime3() {
-		if (TextUtils.isEmpty(time3)) {
+	public String getFivePmIndex() {
+		if (TextUtils.isEmpty(fivePmIndex)) {
 			return "--";
 		}
-		return time3;
+		return fivePmIndex;
 	}
 
 	@Override
 	public String toString() {
 		return "AirPolutionIndex [area=" + area + ", state=" + state
-				+ ", time1=" + time1 + ", time2=" + time2 + ", time3=" + time3
+				+ ", time1=" + sevenAmIndex + ", time2=" + elevenAmIndex + ", time3=" + fivePmIndex
 				+ "]";
 	}
 
