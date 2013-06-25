@@ -1,6 +1,7 @@
 package me.ebernie.mapi.db;
 
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -228,12 +229,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			@Override
 			public void onErrorResponse(final VolleyError error) {
 				((Activity) context).runOnUiThread(new Runnable() {
-
 					@Override
 					public void run() {
 						Toast.makeText(context, "Unable to fetch API data",
 								Toast.LENGTH_LONG).show();
 						Log.e(TAG, error.getMessage(), error);
+						listener.updateList(null);
 					}
 				});
 			}
@@ -261,12 +262,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		}
 
 		public void fetchData() {
-			// SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-			// String date = df.format(new Date());
-			// TODO for testing, remove me!
-			// String param = "?date=" + "2013-06-24";
+			 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+			 String date = df.format(new Date());
+			 String param = "?date=" + "2013-06-26";
 
-			rqueue.add(new JsonArrayRequest(HAZE_URL,
+			rqueue.add(new JsonArrayRequest(HAZE_URL + param,
 					new Response.Listener<JSONArray>() {
 						@Override
 						public void onResponse(JSONArray jsonArray) {
@@ -342,6 +342,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 						Toast.makeText(context, "Unable to fetch API data",
 								Toast.LENGTH_LONG).show();
 						Log.e(TAG, error.getMessage(), error);
+						listener.updateList(null);
 					}
 				});
 			}

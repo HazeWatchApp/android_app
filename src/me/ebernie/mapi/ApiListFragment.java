@@ -6,13 +6,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
 
-import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher;
-import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher.OnRefreshListener;
-import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
-
 import me.ebernie.mapi.api.DataApi;
 import me.ebernie.mapi.db.DatabaseHelper.PersistableDataListener;
 import me.ebernie.mapi.model.AirPolutionIndex;
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher;
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher.OnRefreshListener;
+import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
 import android.app.ActionBar;
 import android.app.ActionBar.OnNavigationListener;
 import android.app.Fragment;
@@ -102,14 +101,15 @@ public class ApiListFragment extends Fragment implements
 		getActivity().getActionBar().setListNavigationCallbacks(navAdapter,
 				ApiListFragment.this);
 		if (!indices.isEmpty()) {
-			getActivity().getActionBar().setSelectedNavigationItem(currentSelection);
+			getActivity().getActionBar().setSelectedNavigationItem(
+					currentSelection);
 		}
 	}
 
 	class AirPolutionIndexAdapter extends ArrayAdapter<AirPolutionIndex> {
 		private final List<AirPolutionIndex> indices;
 		private final int layout;
-		private Date currentDate = new Date();
+		private Date currentTime = new Date();
 		private Date sevenAm = new Date();
 		private Date elevenAm = new Date();
 		private Date fivePm = new Date();
@@ -139,53 +139,110 @@ public class ApiListFragment extends Fragment implements
 			ViewHolder holder = (ViewHolder) convertView.getTag();
 			AirPolutionIndex index = getItem(position);
 			holder.townArea.setText(index.getArea());
-			// determine current time
-			if (currentDate.after(sevenAm) && currentDate.before(elevenAm)) {
-				holder.curTimeIndex.setText(index.getTime1());
-				holder.curTime.setText(R.string.seven);
-				holder.curTimeIndex.setTextColor(getColor(index.getTime1()));
 
-				holder.time1.setText(R.string.eleven);
-				holder.index1.setText(index.getTime2());
-				holder.index2.setTextColor(getColor(index.getTime2()));
+			if (currentTime.before(elevenAm)) {
+				// if 'current' time has an index, we show it, otherwise stare
+				// at the haze icon
+				if (hasData(index.getTime1())) {
+//					holder.curTime.setVisibility(View.VISIBLE);
+//					holder.curTimeIndex.setVisibility(View.VISIBLE);
+//					holder.index1.setVisibility(View.VISIBLE);
+//					holder.index2.setVisibility(View.VISIBLE);
+//					holder.time1.setVisibility(View.VISIBLE);
+//					holder.time2.setVisibility(View.VISIBLE);
+//					holder.separator.setVisibility(View.VISIBLE);
+//					holder.empty.setVisibility(View.GONE);
+//					holder.emptyText.setVisibility(View.GONE);
+//					
+					holder.curTimeIndex.setText(index.getTime1());
+					holder.curTime.setText(R.string.seven);
+					holder.curTimeIndex
+							.setTextColor(getColor(index.getTime1()));
 
-				holder.time2.setText(R.string.five);
-				holder.index2.setText(index.getTime3());
-				holder.index2.setTextColor(getColor(index.getTime3()));
+					holder.time1.setText(R.string.eleven);
+					holder.index1.setText(index.getTime2());
+					holder.index2.setTextColor(getColor(index.getTime2()));
 
-			} else if (currentDate.after(elevenAm)
-					&& currentDate.before(fivePm)) {
-				holder.curTimeIndex.setText(index.getTime2());
-				holder.curTime.setText(R.string.eleven);
-				holder.curTimeIndex.setTextColor(getColor(index.getTime2()));
+					holder.time2.setText(R.string.five);
+					holder.index2.setText(index.getTime3());
+					holder.index2.setTextColor(getColor(index.getTime3()));
+//				} else {
+//					holder.curTime.setVisibility(View.GONE);
+//					holder.curTimeIndex.setVisibility(View.GONE);
+//					holder.index1.setVisibility(View.GONE);
+//					holder.index2.setVisibility(View.GONE);
+//					holder.time1.setVisibility(View.GONE);
+//					holder.time2.setVisibility(View.GONE);
+//					holder.separator.setVisibility(View.GONE);
+//					holder.emptyText.setVisibility(View.VISIBLE);
+//					holder.empty.setVisibility(View.VISIBLE);
+				}
+			} else if (currentTime.after(elevenAm)
+					&& currentTime.before(fivePm)) {
+				// if 11 am has data, just show
+				if (hasData(index.getTime2())) {
+					holder.curTimeIndex.setText(index.getTime2());
+					holder.curTime.setText(R.string.eleven);
+					holder.curTimeIndex
+							.setTextColor(getColor(index.getTime2()));
 
-				holder.time1.setText(R.string.seven);
-				holder.index1.setText(index.getTime1());
-				holder.index1.setTextColor(getColor(index.getTime1()));
+					holder.time1.setText(R.string.seven);
+					holder.index1.setText(index.getTime1());
+					holder.index1.setTextColor(getColor(index.getTime1()));
+				} else {
+					// if eleven am has no data, then show 7 am
+					holder.curTimeIndex.setText(index.getTime1());
+					holder.curTime.setText(R.string.seven);
+					holder.curTimeIndex
+							.setTextColor(getColor(index.getTime1()));
 
+					holder.time1.setText(R.string.eleven);
+					holder.index1.setText(index.getTime2());
+					holder.index1.setTextColor(getColor(index.getTime2()));
+				}
 				holder.time2.setText(R.string.five);
 				holder.index2.setText(index.getTime3());
 				holder.index2.setTextColor(getColor(index.getTime3()));
 			} else {
-				holder.curTimeIndex.setText(index.getTime3());
-				holder.curTime.setText(R.string.five);
-				holder.curTimeIndex.setTextColor(getColor(index.getTime3()));
+				// if 5pm has no data, show eleven am data
+				if (hasData(index.getTime3())) {
+					holder.curTimeIndex.setText(index.getTime3());
+					holder.curTime.setText(R.string.five);
+					holder.curTimeIndex
+							.setTextColor(getColor(index.getTime3()));
 
-				holder.time1.setText(R.string.seven);
-				holder.index1.setText(index.getTime1());
-				holder.index1.setTextColor(getColor(index.getTime1()));
+					holder.time1.setText(R.string.seven);
+					holder.index1.setText(index.getTime1());
+					holder.index1.setTextColor(getColor(index.getTime1()));
+
+				} else {
+					holder.curTimeIndex.setText(index.getTime2());
+					holder.curTime.setText(R.string.eleven);
+					holder.curTimeIndex
+							.setTextColor(getColor(index.getTime2()));
+
+					holder.time1.setText(R.string.five);
+					holder.index1.setText(index.getTime3());
+					holder.index1.setTextColor(getColor(index.getTime3()));
+
+				}
 
 				holder.time2.setText(R.string.eleven);
 				holder.index2.setText(index.getTime2());
 				holder.index2.setTextColor(getColor(index.getTime2()));
 			}
+
 			return convertView;
+		}
+
+		private boolean hasData(String val) {
+			return !TextUtils.isEmpty(val) && !"--".equals(val);
 		}
 
 		private int getColor(String valStr) {
 			int color = Color.parseColor("#000000");
 			int val = 0;
-			if (!TextUtils.isEmpty(valStr) && !"--".equals(valStr)) {
+			if (hasData(valStr)) {
 				val = Integer.valueOf(valStr);
 			}
 			if (val > 0 && val <= 50) {
@@ -240,7 +297,6 @@ public class ApiListFragment extends Fragment implements
 				time2.setTypeface(robotoLightItalic);
 				curTime = (TextView) view.findViewById(R.id.curTime);
 				curTime.setTypeface(robotoLightItalic);
-
 			}
 		}
 
@@ -248,31 +304,47 @@ public class ApiListFragment extends Fragment implements
 
 	@Override
 	public void updateList(List<AirPolutionIndex> index) {
-		indices.clear();
-		indices.put(getString(R.string.all_states), null);
-		for (AirPolutionIndex api : index) {
-			if (api.getState() != null) {
-				indices.put(api.getState(), api);
+		
+		if (index != null) {
+			indices.clear();
+			indices.put(getString(R.string.all_states), null);
+			for (AirPolutionIndex api : index) {
+				if (api.getState() != null) {
+					indices.put(api.getState(), api);
+				}
 			}
-		}
-		// prep actionbar nav list
-		ActionBar ab = getActivity().getActionBar();
-		String[] states = new String[indices.keySet().size()];
-		TreeSet<String> sort = new TreeSet<String>();
-		sort.addAll(indices.keySet());
-		sort.toArray(states);
-		navAdapter = new ArrayAdapter<String>(ab.getThemedContext(),
-				android.R.layout.simple_spinner_dropdown_item, states);
-		ab.setListNavigationCallbacks(navAdapter, ApiListFragment.this);
-		ab.setSelectedNavigationItem(currentSelection);
-		indices.remove(getString(R.string.all_states), null);
-
-		SharedPreferences prefs = getActivity().getSharedPreferences(
-				"me.ebernie.mapi", Context.MODE_PRIVATE);
-		int selection = prefs.getInt(PREF_KEY_STATE_SELECTION, 0);
-		if (selection != 0) {
-			currentSelection = selection;
-			getActivity().getActionBar().setSelectedNavigationItem(currentSelection);
+			
+			// test data
+//		AirPolutionIndex sevenamnodata = new AirPolutionIndex(
+//				"Test no data 7 am", "Kedah", "", "193", "50");
+//		indices.put(sevenamnodata.getState(), sevenamnodata);
+//		AirPolutionIndex elevenamnodata = new AirPolutionIndex(
+//				"Test no data 11 am", "Kedah", "191", "", "");
+//		indices.put(elevenamnodata.getState(), elevenamnodata);
+//		AirPolutionIndex fivepmnodata = new AirPolutionIndex(
+//				"Test no data 5 pm", "Kedah", "191", "333", "");
+//		indices.put(fivepmnodata.getState(), fivepmnodata);
+			
+			// prep actionbar nav list
+			ActionBar ab = getActivity().getActionBar();
+			String[] states = new String[indices.keySet().size()];
+			TreeSet<String> sort = new TreeSet<String>();
+			sort.addAll(indices.keySet());
+			sort.toArray(states);
+			navAdapter = new ArrayAdapter<String>(ab.getThemedContext(),
+					android.R.layout.simple_spinner_dropdown_item, states);
+			ab.setListNavigationCallbacks(navAdapter, ApiListFragment.this);
+			ab.setSelectedNavigationItem(currentSelection);
+			indices.remove(getString(R.string.all_states), null);
+			
+			SharedPreferences prefs = getActivity().getSharedPreferences(
+					"me.ebernie.mapi", Context.MODE_PRIVATE);
+			int selection = prefs.getInt(PREF_KEY_STATE_SELECTION, 0);
+			if (selection != 0) {
+				currentSelection = selection;
+				getActivity().getActionBar().setSelectedNavigationItem(
+						currentSelection);
+			}
 		}
 
 		pullToRefreshHelper.setRefreshComplete();
@@ -283,14 +355,15 @@ public class ApiListFragment extends Fragment implements
 		super.onDestroy();
 		DataApi.INSTANCE.destroy();
 	}
-	
+
 	@Override
 	public boolean onNavigationItemSelected(int itemPosition, long itemId) {
 		currentSelection = itemPosition;
 		refreshScreenBasedOnSelection();
 		SharedPreferences prefs = getActivity().getSharedPreferences(
-			      "me.ebernie.mapi", Context.MODE_PRIVATE);
-		prefs.edit().putInt(PREF_KEY_STATE_SELECTION, currentSelection).commit();
+				"me.ebernie.mapi", Context.MODE_PRIVATE);
+		prefs.edit().putInt(PREF_KEY_STATE_SELECTION, currentSelection)
+				.commit();
 		return true;
 	}
 
