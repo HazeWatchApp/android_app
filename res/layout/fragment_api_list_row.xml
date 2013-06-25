@@ -3,7 +3,8 @@
     android:layout_height="wrap_content"
     android:background="@drawable/card"
     android:orientation="vertical"
-    android:padding="8dp" >
+    android:paddingLeft="8dp" 
+    android:paddingRight="8dp" >
 
     <TextView
         android:id="@+id/town_area"
@@ -75,6 +76,7 @@
 
             <TextView
                 android:id="@+id/time1"
+                android:layout_alignLeft="@+id/time2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignBaseline="@id/index1"
@@ -102,7 +104,7 @@
                 android:layout_alignParentRight="true"
                 android:layout_below="@id/index2"
                 android:paddingRight="16dp"
-                android:text="7AM" 
+                android:text="11AM" 
                 android:textSize="15sp" />
         </RelativeLayout>
     </RelativeLayout>

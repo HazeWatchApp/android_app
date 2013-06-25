@@ -254,7 +254,7 @@ public class ApiListFragment extends Fragment implements
 	@Override
 	public void updateList(List<AirPolutionIndex> index) {
 		indices.clear();
-		indices.put("All", null);
+		indices.put(getString(R.string.all_states), null);
 		for (AirPolutionIndex api : index) {
 			if (api.getState() != null) {
 				indices.put(api.getState(), api);
@@ -269,7 +269,7 @@ public class ApiListFragment extends Fragment implements
 		navAdapter = new ArrayAdapter<String>(ab.getThemedContext(),
 				android.R.layout.simple_spinner_dropdown_item, states);
 		ab.setListNavigationCallbacks(navAdapter, ApiListFragment.this);
-		indices.remove("All", null);
+		indices.remove("All States", null);
 		tmp.clear();
 		tmp.addAll(indices.values());
 		grid.setAdapter(new AirPolutionIndexAdapter(getActivity(),
@@ -289,7 +289,7 @@ public class ApiListFragment extends Fragment implements
 		String item = navAdapter.getItem(itemPosition);
 		currentSelection = itemPosition;
 		tmp.clear();
-		if ("All".equals(item)) {
+		if (getString(R.string.all_states).equals(item)) {
 			tmp.addAll(indices.values());
 		} else {
 			tmp.addAll(indices.get(item));
