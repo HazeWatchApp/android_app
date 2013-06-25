@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Haze Watch</string>
+    <string name="title_airpolutionindex_detail">AirPolutionIndex Detail</string>
+    <string name="eleven">11 AM</string>
+    <string name="seven">7 AM</string>
+    <string name="five">5 PM</string>
+    <string name="refresh">Refresh</string>
+    <string name="error">Ops, the haze seems to hit the server and we are not able to get data at this time (or internet is not available at this time, but we won\'t laugh at you)</string>
+
+</resources>
