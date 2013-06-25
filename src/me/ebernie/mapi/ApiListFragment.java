@@ -2,6 +2,7 @@ package me.ebernie.mapi;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
@@ -379,6 +380,7 @@ public class ApiListFragment extends Fragment implements
 		} else {
 			tmp.addAll(indices.get(item));
 		}
+		Collections.sort(tmp);
 		grid.setAdapter(new AirPolutionIndexAdapter(getActivity(),
 				R.layout.fragment_api_list_row, tmp));
 	}

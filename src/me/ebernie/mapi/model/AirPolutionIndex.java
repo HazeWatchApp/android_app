@@ -4,7 +4,7 @@ import android.text.TextUtils;
 
 import com.google.gson.annotations.SerializedName;
 
-public class AirPolutionIndex {
+public class AirPolutionIndex implements Comparable<AirPolutionIndex>{
 
 	@SerializedName("lokasi")
 	private final String area;
@@ -61,6 +61,11 @@ public class AirPolutionIndex {
 		return "AirPolutionIndex [area=" + area + ", state=" + state
 				+ ", time1=" + sevenAmIndex + ", time2=" + elevenAmIndex + ", time3=" + fivePmIndex
 				+ "]";
+	}
+
+	@Override
+	public int compareTo(AirPolutionIndex another) {
+		return this.area.compareTo(another.area);
 	}
 
 }
