@@ -14,7 +14,7 @@
         android:layout_marginLeft="8dp"
         android:maxLines="1"
         android:text="Balok Baru, Kuantan"
-        android:textSize="22sp" />
+        android:textSize="18sp" />
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -36,7 +36,7 @@
                 android:layout_toLeftOf="@+id/curTime"
                 android:paddingRight="8dp"
                 android:text="147"
-                android:textSize="66sp" />
+                android:textSize="45sp" />
 
             <TextView
                 android:id="@+id/curTime"
@@ -44,9 +44,9 @@
                 android:layout_height="wrap_content"
                 android:layout_alignBaseline="@id/curIndex"
                 android:layout_alignParentRight="true"
-                android:paddingRight="16dp"
+                android:paddingRight="12dp"
                 android:text="5pm"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
         </RelativeLayout>
 
         <View
@@ -54,13 +54,13 @@
             android:layout_width="1dp"
             android:layout_height="80dp"
             android:layout_centerInParent="true"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:layout_toLeftOf="@+id/layout2"
             android:background="#eeeeee" />
 
         <RelativeLayout
             android:id="@+id/layout2"
-            android:layout_width="150dp"
+            android:layout_width="130dp"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
@@ -71,9 +71,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toLeftOf="@+id/time1"
-                android:paddingRight="16dp"
+                android:paddingRight="12dp"
                 android:text="147"
-                android:textSize="38sp" />
+                android:textSize="26sp" />
 
             <TextView
                 android:id="@+id/time1"
@@ -85,7 +85,7 @@
                 android:layout_below="@id/index1"
                 android:paddingRight="16dp"
                 android:text="7AM"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/index2"
@@ -93,9 +93,9 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/time1"
                 android:layout_toLeftOf="@+id/time2"
-                android:paddingRight="16dp"
+                android:paddingRight="12dp"
                 android:text="147"
-                android:textSize="38sp" />
+                android:textSize="26sp" />
 
             <TextView
                 android:id="@+id/time2"
@@ -106,7 +106,7 @@
                 android:layout_below="@id/index2"
                 android:paddingRight="16dp"
                 android:text="11AM"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
         </RelativeLayout>
     </RelativeLayout>
 

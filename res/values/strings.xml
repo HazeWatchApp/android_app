@@ -7,6 +7,6 @@
     <string name="seven">7 AM</string>
     <string name="five">5 PM</string>
     <string name="refresh">Refresh</string>
-    <string name="error">Ops, the haze seems to hit the server and we are not able to get data at this time (or internet is not available at this time, but we won\'t laugh at you)</string>
+    <string name="error">Ops, no data for this location</string>
     <string name="all_states">All States</string>
 </resources>
