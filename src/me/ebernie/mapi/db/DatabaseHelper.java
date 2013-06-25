@@ -187,8 +187,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 							"SELECT * FROM api_data", null);
 					indexCursor.moveToFirst();
 					while (!indexCursor.isAfterLast()) {
-						String town = indexCursor.getString(indexCursor
-								.getColumnIndex(COL_TOWN));
+//						String town = indexCursor.getString(indexCursor
+//								.getColumnIndex(COL_TOWN));
 						String area = indexCursor.getString(indexCursor
 								.getColumnIndex(COL_AREA));
 						String state = indexCursor.getString(indexCursor

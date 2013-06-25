@@ -64,7 +64,7 @@ public class ApiListFragment extends Fragment implements
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.menu, menu);
 	}
-	
+
 	public void setPullToRefreshHelper(PullToRefreshAttacher pullToRefreshHelper) {
 		this.pullToRefreshHelper = pullToRefreshHelper;
 	}
@@ -100,7 +100,7 @@ public class ApiListFragment extends Fragment implements
 		getActivity().getActionBar().setListNavigationCallbacks(navAdapter,
 				ApiListFragment.this);
 		if (!indices.isEmpty()) {
-			onNavigationItemSelected(currentSelection, 0);
+			getActivity().getActionBar().setSelectedNavigationItem(currentSelection);
 		}
 	}
 
@@ -141,50 +141,41 @@ public class ApiListFragment extends Fragment implements
 			if (currentDate.after(sevenAm) && currentDate.before(elevenAm)) {
 				holder.curTimeIndex.setText(index.getTime1());
 				holder.curTime.setText(R.string.seven);
-				holder.curTimeIndex.setTextColor(
-						getColor(index.getTime1()));
+				holder.curTimeIndex.setTextColor(getColor(index.getTime1()));
 
 				holder.time1.setText(R.string.eleven);
 				holder.index1.setText(index.getTime2());
-				holder.index2.setTextColor(
-						getColor(index.getTime2()));
+				holder.index2.setTextColor(getColor(index.getTime2()));
 
 				holder.time2.setText(R.string.five);
 				holder.index2.setText(index.getTime3());
-				holder.index2.setTextColor(
-						getColor(index.getTime3()));
+				holder.index2.setTextColor(getColor(index.getTime3()));
 
 			} else if (currentDate.after(elevenAm)
 					&& currentDate.before(fivePm)) {
 				holder.curTimeIndex.setText(index.getTime2());
 				holder.curTime.setText(R.string.eleven);
-				holder.curTimeIndex.setTextColor(
-						getColor(index.getTime2()));
+				holder.curTimeIndex.setTextColor(getColor(index.getTime2()));
 
 				holder.time1.setText(R.string.seven);
 				holder.index1.setText(index.getTime1());
-				holder.index1.setTextColor(
-						getColor(index.getTime1()));
+				holder.index1.setTextColor(getColor(index.getTime1()));
 
 				holder.time2.setText(R.string.five);
 				holder.index2.setText(index.getTime3());
-				holder.index2.setTextColor(
-						getColor(index.getTime3()));
+				holder.index2.setTextColor(getColor(index.getTime3()));
 			} else {
 				holder.curTimeIndex.setText(index.getTime3());
 				holder.curTime.setText(R.string.five);
-				holder.curTimeIndex.setTextColor(
-						getColor(index.getTime3()));
+				holder.curTimeIndex.setTextColor(getColor(index.getTime3()));
 
 				holder.time1.setText(R.string.seven);
 				holder.index1.setText(index.getTime1());
-				holder.index1.setTextColor(
-						getColor(index.getTime1()));
+				holder.index1.setTextColor(getColor(index.getTime1()));
 
 				holder.time2.setText(R.string.eleven);
 				holder.index2.setText(index.getTime2());
-				holder.index2.setTextColor(
-						getColor(index.getTime2()));
+				holder.index2.setTextColor(getColor(index.getTime2()));
 			}
 			return convertView;
 		}
@@ -206,22 +197,7 @@ public class ApiListFragment extends Fragment implements
 			} else {
 				color = Color.parseColor("#cc0000");
 			}
-			
-//			int val = android.R.color.black;
-//			if (!TextUtils.isEmpty(valStr) && !"--".equals(valStr)) {
-//				val = Integer.valueOf(valStr);
-//			}
-//			if (val > 0 && val <= 50) {
-//				color = android.R.color.holo_blue_dark;
-//			} else if (val > 51 && val <= 100) {
-//				color = android.R.color.holo_green_light;
-//			} else if (val > 100 && val <= 200) {
-//				color = android.R.color.holo_orange_light;
-//			} else if (val > 200 && val <= 300) {
-//				color = android.R.color.holo_orange_dark;
-//			} else {
-//				color = android.R.color.holo_red_light;
-//			}
+
 			return color;
 		}
 
@@ -286,11 +262,12 @@ public class ApiListFragment extends Fragment implements
 		navAdapter = new ArrayAdapter<String>(ab.getThemedContext(),
 				android.R.layout.simple_spinner_dropdown_item, states);
 		ab.setListNavigationCallbacks(navAdapter, ApiListFragment.this);
-		indices.remove("All States", null);
-		tmp.clear();
-		tmp.addAll(indices.values());
-		grid.setAdapter(new AirPolutionIndexAdapter(getActivity(),
-				R.layout.fragment_api_list_row, tmp));
+		ab.setSelectedNavigationItem(currentSelection);
+		indices.remove(getString(R.string.all_states), null);
+//		tmp.clear();
+//		tmp.addAll(indices.values());
+//		grid.setAdapter(new AirPolutionIndexAdapter(getActivity(),
+//				R.layout.fragment_api_list_row, tmp));
 
 		pullToRefreshHelper.setRefreshComplete();
 	}
@@ -303,8 +280,13 @@ public class ApiListFragment extends Fragment implements
 
 	@Override
 	public boolean onNavigationItemSelected(int itemPosition, long itemId) {
-		String item = navAdapter.getItem(itemPosition);
 		currentSelection = itemPosition;
+		refreshScreenBasedOnSelection();
+		return true;
+	}
+
+	private void refreshScreenBasedOnSelection() {
+		String item = navAdapter.getItem(currentSelection);
 		tmp.clear();
 		if (getString(R.string.all_states).equals(item)) {
 			tmp.addAll(indices.values());
@@ -313,7 +295,6 @@ public class ApiListFragment extends Fragment implements
 		}
 		grid.setAdapter(new AirPolutionIndexAdapter(getActivity(),
 				R.layout.fragment_api_list_row, tmp));
-		return true;
 	}
 
 	@Override
