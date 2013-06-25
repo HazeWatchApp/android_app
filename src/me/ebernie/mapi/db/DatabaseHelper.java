@@ -107,6 +107,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			ContentValues values = new ContentValues();
 			try {
 				db.beginTransaction();
+				db.delete(TABLE_DATA_API, null, null);
 				// store indices
 				for (int i = 0; i < params.length; i++) {
 					AirPolutionIndex index = (AirPolutionIndex) params[i];
