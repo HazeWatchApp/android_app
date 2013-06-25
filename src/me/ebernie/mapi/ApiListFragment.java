@@ -17,6 +17,7 @@ import android.app.ActionBar;
 import android.app.ActionBar.OnNavigationListener;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -45,6 +46,7 @@ public class ApiListFragment extends Fragment implements
 	private Typeface robotoLightItalic = null;
 	private Typeface robotoLight = null;
 	private PullToRefreshAttacher pullToRefreshHelper;
+	private static final String PREF_KEY_STATE_SELECTION = "state_selection";
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -277,11 +279,26 @@ public class ApiListFragment extends Fragment implements
 		super.onDestroy();
 		DataApi.INSTANCE.destroy();
 	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		SharedPreferences prefs = getActivity().getSharedPreferences(
+			      "me.ebernie.mapi", Context.MODE_PRIVATE);
+		int selection = prefs.getInt(PREF_KEY_STATE_SELECTION, 0);
+		if (selection != 0) {
+			currentSelection = selection;
+			getActivity().getActionBar().setSelectedNavigationItem(currentSelection);
+		}
+	}
 
 	@Override
 	public boolean onNavigationItemSelected(int itemPosition, long itemId) {
 		currentSelection = itemPosition;
 		refreshScreenBasedOnSelection();
+		SharedPreferences prefs = getActivity().getSharedPreferences(
+			      "me.ebernie.mapi", Context.MODE_PRIVATE);
+		prefs.edit().putInt(PREF_KEY_STATE_SELECTION, currentSelection).commit();
 		return true;
 	}
 
