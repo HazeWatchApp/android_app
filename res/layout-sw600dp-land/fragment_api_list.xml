@@ -14,7 +14,8 @@
         android:layout_marginLeft="8dp"
         android:text="26/06"
         android:textColor="@android:color/black"
-        android:textSize="20sp"
+        android:textSize="16sp"
+        android:freezesText="true"
         android:visibility="gone" />
 
     <GridView
