@@ -117,7 +117,8 @@ public class ApiListFragment extends Fragment implements
 		pullToRefreshHelper.setRefreshableView(grid, handler, this);
 		date = (TextView) view.findViewById(R.id.date);
 		date.setTypeface(robotoBold);
-		date.setText(getString(R.string.last_update) + " " + sdf.format(updateDate));
+		date.setText(getString(R.string.last_update) + " "
+				+ sdf.format(updateDate));
 		return view;
 	}
 
@@ -364,7 +365,7 @@ public class ApiListFragment extends Fragment implements
 					android.R.layout.simple_spinner_dropdown_item, states);
 			ab.setListNavigationCallbacks(navAdapter, ApiListFragment.this);
 			ab.setSelectedNavigationItem(currentSelection);
-	
+
 			indices.remove(getString(R.string.all_states), null);
 
 			SharedPreferences prefs = getActivity().getSharedPreferences(
@@ -450,6 +451,7 @@ public class ApiListFragment extends Fragment implements
 	@Override
 	public void setUpdateDate(Date date) {
 		this.updateDate = date;
-		this.date.setText(sdf.format(updateDate));
+		this.date.setText(getString(R.string.last_update) + " "
+				+ sdf.format(updateDate));
 	}
 }
