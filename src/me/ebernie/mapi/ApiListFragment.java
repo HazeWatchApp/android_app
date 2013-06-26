@@ -360,7 +360,7 @@ public class ApiListFragment extends Fragment implements
 			// currentSelection = selection;
 			// ab.setSelectedNavigationItem(currentSelection);
 			// }
-		} else if (indices.isEmpty()) {
+		} else if (indices.isEmpty() && index == null) {
 			// show emptyView
 			grid.setVisibility(View.GONE);
 			progressBar.animate().alpha(0).setDuration(200).setListener(new AnimatorListener() {
