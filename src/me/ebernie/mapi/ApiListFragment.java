@@ -26,7 +26,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -46,8 +45,6 @@ import com.google.common.collect.Multimap;
 @SuppressLint("SimpleDateFormat")
 public class ApiListFragment extends Fragment implements
 		PersistableDataListener, OnNavigationListener, OnRefreshListener {
-
-	private final String LOG_TAG = ApiListFragment.class.getName();
 
 	private Multimap<String, AirPolutionIndex> indices = HashMultimap.create();
 	private GridView grid;
@@ -268,11 +265,7 @@ public class ApiListFragment extends Fragment implements
 			int color = Color.parseColor("#000000");
 			int val = 0;
 			if (hasData(valStr)) {
-				try {
-					val = Integer.valueOf(valStr);
-				} catch (Exception e) {
-					Log.e(LOG_TAG, "Invalid index value? ", e);
-				}
+				val = Integer.valueOf(valStr);
 			}
 			if (val > 0 && val <= 50) {
 				color = Color.parseColor("#00a651");
