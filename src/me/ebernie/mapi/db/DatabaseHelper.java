@@ -51,6 +51,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	private static final String TABLE_DATA_API = "api_data";
 	private static final String COL_LAST_UPDATE = "last_update";
 	private static final String TABLE_UPDATE_TIME = "update_times";
+	// 2 hours
+	private static final int UPDATE_DURATION_IN_MIL = 1000 * 60 * 60 * 2;
 
 	public DatabaseHelper(Context context, CursorFactory factory) {
 		super(context, DB_NAME, factory, SCHEMA_VERSION);
@@ -172,11 +174,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 					updateTime.moveToFirst();
 					long time = updateTime.getLong(updateTime
 							.getColumnIndex(COL_LAST_UPDATE));
-					Calendar cal = Calendar.getInstance();
-					cal.setTime(new Date(time));
-					cal.add(Calendar.MINUTE, 120);
+					Calendar timeToUpdate = Calendar.getInstance();
+					timeToUpdate.setTime(new Date(time));
+					timeToUpdate.add(Calendar.MILLISECOND, UPDATE_DURATION_IN_MIL);
 					Date curTime = Calendar.getInstance().getTime();
-					if (!curTime.after(cal.getTime())) {
+					if (curTime.after(timeToUpdate.getTime())) {
 						// fetch from network if there's no fresh data
 						getIndexFromNetwork(listener);
 						networkFetch = true;
