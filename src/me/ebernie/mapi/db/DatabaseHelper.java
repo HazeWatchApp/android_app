@@ -153,6 +153,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			AsyncTask<Void, Void, List<AirPolutionIndex>> {
 
 		private final PersistableDataListener listener;
+		private long lastUpdated;
 
 		public GetIndexTask(PersistableDataListener listener) {
 			this.listener = listener;
@@ -173,10 +174,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 						null);
 				if (updateTime.getCount() > 0) {
 					updateTime.moveToFirst();
-					long time = updateTime.getLong(updateTime
+					lastUpdated = updateTime.getLong(updateTime
 							.getColumnIndex(COL_LAST_UPDATE));
 					Calendar timeToUpdate = Calendar.getInstance();
-					timeToUpdate.setTime(new Date(time));
+					timeToUpdate.setTime(new Date(lastUpdated));
 					timeToUpdate.add(Calendar.MILLISECOND, UPDATE_DURATION_IN_MIL);
 					Date curTime = Calendar.getInstance().getTime();
 					if (curTime.after(timeToUpdate.getTime())) {
@@ -230,6 +231,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		@Override
 		protected void onPostExecute(List<AirPolutionIndex> result) {
 			listener.updateList(result);
+			listener.setUpdateDate(new Date(lastUpdated));
 		}
 	}
 
