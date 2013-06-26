@@ -97,6 +97,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	public interface PersistableDataListener {
 		void updateList(List<AirPolutionIndex> index);
+		void setUpdateDate(Date date);
 	}
 
 	public void saveIndex(List<AirPolutionIndex> indices) {
@@ -252,6 +253,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 					yesterday.set(Calendar.DAY_OF_MONTH,
 							yesterday.get(Calendar.DAY_OF_MONTH) - 1);
 					String param = "?date=" + sdf.format(yesterday.getTime());
+					listener.setUpdateDate(yesterday.getTime());
 					getIndexFromNetwork(listener, param);
 					listener.updateList(null);
 				}
@@ -259,11 +261,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		}
 	}
 	
-	private class ErrorListener implements Response.ErrorListener {
+	private class NonRetryingErrorListener implements Response.ErrorListener {
 
 		private final PersistableDataListener listener;
 
-		public ErrorListener(PersistableDataListener listener) {
+		public NonRetryingErrorListener(PersistableDataListener listener) {
 			this.listener = listener;
 		}
 
@@ -281,7 +283,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	}
 
 	private RetryingErrorListener retryingErrorListener;
-	private ErrorListener nonRetryingErrorListener;
+	private NonRetryingErrorListener nonRetryingErrorListener;
 
 	public void getIndexFromNetwork(final PersistableDataListener listener,
 			String params) {
@@ -291,7 +293,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		}
 		
 		if (nonRetryingErrorListener == null) {
-			nonRetryingErrorListener = new ErrorListener(listener);
+			nonRetryingErrorListener = new NonRetryingErrorListener(listener);
 		}
 		
 		Response.ErrorListener errorListener; 
@@ -311,6 +313,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 						}.getType();
 						List<AirPolutionIndex> indices = gson.fromJson(
 								jsonArray.toString(), type);
+						listener.setUpdateDate(new Date());
 						listener.updateList(indices);
 						// also perform a save to the db after a network
 						// fetch

@@ -1,5 +1,6 @@
 package me.ebernie.mapi;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -16,10 +17,12 @@ import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher.OnRefres
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.ActionBar.OnNavigationListener;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -40,6 +43,7 @@ import android.widget.TextView;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
+@SuppressLint("SimpleDateFormat")
 public class ApiListFragment extends Fragment implements
 		PersistableDataListener, OnNavigationListener, OnRefreshListener {
 
@@ -52,12 +56,16 @@ public class ApiListFragment extends Fragment implements
 	private int currentSelection = 0;
 	private Typeface robotoLightItalic = null;
 	private Typeface robotoLight = null;
+	private Typeface robotoBold = null;
 	private PullToRefreshAttacher pullToRefreshHelper;
 	private Animation stackFromBottom;
 	private View progressBar;
 	private TextView emptyText;
+	private Date updateDate = new Date();
+	private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM");
+	private TextView date;
 
-	// private static final String PREF_KEY_STATE_SELECTION = "state_selection";
+	private static final String PREF_KEY_STATE_SELECTION = "state_selection";
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -68,6 +76,8 @@ public class ApiListFragment extends Fragment implements
 				"fonts/Roboto-LightItalic.ttf");
 		robotoLight = Typeface.createFromAsset(getActivity().getAssets(),
 				"fonts/Roboto-Light.ttf");
+		robotoBold = Typeface.createFromAsset(getActivity().getAssets(),
+				"fonts/Roboto-Bold.ttf");
 		stackFromBottom = AnimationUtils
 				.makeInChildBottomAnimation(getActivity());
 	}
@@ -105,6 +115,9 @@ public class ApiListFragment extends Fragment implements
 		pullToRefreshHelper = ((MainActivity) getActivity())
 				.getPullToRefreshHelper();
 		pullToRefreshHelper.setRefreshableView(grid, handler, this);
+		date = (TextView) view.findViewById(R.id.date);
+		date.setTypeface(robotoBold);
+		date.setText(getString(R.string.last_update) + " " + sdf.format(updateDate));
 		return view;
 	}
 
@@ -351,47 +364,50 @@ public class ApiListFragment extends Fragment implements
 					android.R.layout.simple_spinner_dropdown_item, states);
 			ab.setListNavigationCallbacks(navAdapter, ApiListFragment.this);
 			ab.setSelectedNavigationItem(currentSelection);
+	
 			indices.remove(getString(R.string.all_states), null);
 
-			// SharedPreferences prefs = getActivity().getSharedPreferences(
-			// "me.ebernie.mapi", Context.MODE_PRIVATE);
-			// int selection = prefs.getInt(PREF_KEY_STATE_SELECTION, 0);
-			// if (selection != 0
-			// && ab.getNavigationItemCount() > currentSelection) {
-			// currentSelection = selection;
-			// ab.setSelectedNavigationItem(currentSelection);
-			// }
+			SharedPreferences prefs = getActivity().getSharedPreferences(
+					"me.ebernie.mapi", Context.MODE_PRIVATE);
+			int selection = prefs.getInt(PREF_KEY_STATE_SELECTION, 0);
+			if (selection != 0
+					&& ab.getNavigationItemCount() > currentSelection) {
+				currentSelection = selection;
+				ab.setSelectedNavigationItem(currentSelection);
+			}
 		} else if (indices.isEmpty() && index == null) {
 			// show emptyView
 			grid.setVisibility(View.GONE);
-			progressBar.animate().alpha(0).setDuration(200).setListener(new AnimatorListener() {
-				
-				@Override
-				public void onAnimationStart(Animator animation) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				@Override
-				public void onAnimationRepeat(Animator animation) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				@Override
-				public void onAnimationEnd(Animator animation) {
-					progressBar.setVisibility(View.GONE);
-					emptyText.setVisibility(View.VISIBLE);
-					emptyText.animate().alpha(1).setDuration(200).start();
-				}
-				
-				@Override
-				public void onAnimationCancel(Animator animation) {
-					// TODO Auto-generated method stub
-					
-				}
-			}).start();
-			
+			progressBar.animate().alpha(0).setDuration(200)
+					.setListener(new AnimatorListener() {
+
+						@Override
+						public void onAnimationStart(Animator animation) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void onAnimationRepeat(Animator animation) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void onAnimationEnd(Animator animation) {
+							progressBar.setVisibility(View.GONE);
+							emptyText.setVisibility(View.VISIBLE);
+							emptyText.animate().alpha(1).setDuration(200)
+									.start();
+						}
+
+						@Override
+						public void onAnimationCancel(Animator animation) {
+							// TODO Auto-generated method stub
+
+						}
+					}).start();
+
 			ab.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 		}
 	}
@@ -406,10 +422,10 @@ public class ApiListFragment extends Fragment implements
 	public boolean onNavigationItemSelected(int itemPosition, long itemId) {
 		currentSelection = itemPosition;
 		refreshScreenBasedOnSelection();
-		// SharedPreferences prefs = getActivity().getSharedPreferences(
-		// "me.ebernie.mapi", Context.MODE_PRIVATE);
-		// prefs.edit().putInt(PREF_KEY_STATE_SELECTION, currentSelection)
-		// .commit();
+		SharedPreferences prefs = getActivity().getSharedPreferences(
+				"me.ebernie.mapi", Context.MODE_PRIVATE);
+		prefs.edit().putInt(PREF_KEY_STATE_SELECTION, currentSelection)
+				.commit();
 		return true;
 	}
 
@@ -429,5 +445,11 @@ public class ApiListFragment extends Fragment implements
 	@Override
 	public void onRefreshStarted(View view) {
 		DataApi.INSTANCE.getIndex(getActivity(), this, true);
+	}
+
+	@Override
+	public void setUpdateDate(Date date) {
+		this.updateDate = date;
+		this.date.setText(sdf.format(updateDate));
 	}
 }

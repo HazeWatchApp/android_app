@@ -8,5 +8,6 @@
     <string name="refresh">Kemaskini</string>
     <string name="error">Ops, pelayan kami dilanda jerebu dan kami tidak dapat mencapai maklumat buat sementara waktu (ataupun talian anda mempunyai masalah)</string>
     <string name="all_states">Semua negeri</string>
-
+    <string name="last_update">Kemaskini terbaru:</string>
+    
 </resources>
