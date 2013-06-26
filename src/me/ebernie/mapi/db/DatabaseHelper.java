@@ -174,7 +174,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 							.getColumnIndex(COL_LAST_UPDATE));
 					Calendar cal = Calendar.getInstance();
 					cal.setTime(new Date(time));
-					cal.add(Calendar.HOUR_OF_DAY, 2);
+					cal.add(Calendar.MINUTE, 120);
 					Date curTime = Calendar.getInstance().getTime();
 					if (!curTime.after(cal.getTime())) {
 						// fetch from network if there's no fresh data

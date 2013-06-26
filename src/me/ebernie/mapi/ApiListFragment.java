@@ -13,6 +13,8 @@ import me.ebernie.mapi.model.AirPolutionIndex;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher.OnRefreshListener;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
+import android.animation.Animator;
+import android.animation.Animator.AnimatorListener;
 import android.app.ActionBar;
 import android.app.ActionBar.OnNavigationListener;
 import android.app.Fragment;
@@ -27,6 +29,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.TextView;
@@ -47,6 +52,9 @@ public class ApiListFragment extends Fragment implements
 	private Typeface robotoLightItalic = null;
 	private Typeface robotoLight = null;
 	private PullToRefreshAttacher pullToRefreshHelper;
+	private Animation stackFromBottom;
+	private View progressBar;
+	private TextView emptyText;
 
 	// private static final String PREF_KEY_STATE_SELECTION = "state_selection";
 
@@ -59,6 +67,8 @@ public class ApiListFragment extends Fragment implements
 				"fonts/Roboto-LightItalic.ttf");
 		robotoLight = Typeface.createFromAsset(getActivity().getAssets(),
 				"fonts/Roboto-Light.ttf");
+		stackFromBottom = AnimationUtils
+				.makeInChildBottomAnimation(getActivity());
 	}
 
 	@Override
@@ -85,10 +95,11 @@ public class ApiListFragment extends Fragment implements
 			Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_api_list, null);
 		grid = (GridView) view.findViewById(R.id.gridView_api);
-		View emptyView = view.findViewById(R.id.empty_layout);
-		TextView emptyText = (TextView) emptyView.findViewById(R.id.empty_text);
-		emptyText.setTypeface(robotoLight);
 		grid.setEmptyView(view.findViewById(R.id.empty_layout));
+		View emptyView = grid.getEmptyView();
+		emptyText = (TextView) emptyView.findViewById(R.id.empty_text);
+		emptyText.setTypeface(robotoLightItalic);
+		progressBar = emptyView.findViewById(R.id.progress);
 		PullToRefreshAttacher.ViewDelegate handler = new AbsListViewDelegate();
 		pullToRefreshHelper = ((MainActivity) getActivity())
 				.getPullToRefreshHelper();
@@ -315,10 +326,12 @@ public class ApiListFragment extends Fragment implements
 		}
 
 		ActionBar ab = getActivity().getActionBar();
-		if (index != null) {
+		if (index != null && !index.isEmpty()) {
 			grid.setVisibility(View.VISIBLE);
-			grid.getEmptyView().setVisibility(View.GONE);
-
+			LayoutAnimationController gridAnim = new LayoutAnimationController(
+					stackFromBottom);
+			grid.setLayoutAnimation(gridAnim);
+			grid.getLayoutAnimation().start();
 			indices.clear();
 			indices.put(getString(R.string.all_states), null);
 			for (AirPolutionIndex api : index) {
@@ -347,10 +360,37 @@ public class ApiListFragment extends Fragment implements
 			// currentSelection = selection;
 			// ab.setSelectedNavigationItem(currentSelection);
 			// }
-		} else if (indices.isEmpty()) {
+		} else if (index == null) {
 			// show emptyView
 			grid.setVisibility(View.GONE);
-			grid.getEmptyView().setVisibility(View.VISIBLE);
+			progressBar.animate().alpha(0).setDuration(200).setListener(new AnimatorListener() {
+				
+				@Override
+				public void onAnimationStart(Animator animation) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				@Override
+				public void onAnimationRepeat(Animator animation) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				@Override
+				public void onAnimationEnd(Animator animation) {
+					progressBar.setVisibility(View.GONE);
+					emptyText.setVisibility(View.VISIBLE);
+					emptyText.animate().alpha(1).setDuration(200).start();
+				}
+				
+				@Override
+				public void onAnimationCancel(Animator animation) {
+					// TODO Auto-generated method stub
+					
+				}
+			}).start();
+			
 			ab.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 		}
 	}

@@ -21,6 +21,15 @@
         android:gravity="center"
         android:padding="16dp"
         android:text="@string/error"
-        android:textSize="24sp" />
+        android:textSize="24sp" 
+        android:visibility="gone"
+        android:textColor="@android:color/darker_gray"
+        />
+    
+    <ProgressBar android:id="@+id/progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+    />
 
 </LinearLayout>
