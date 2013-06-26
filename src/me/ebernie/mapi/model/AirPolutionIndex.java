@@ -4,7 +4,7 @@ import android.text.TextUtils;
 
 import com.google.gson.annotations.SerializedName;
 
-public class AirPolutionIndex implements Comparable<AirPolutionIndex>{
+public class AirPolutionIndex implements Comparable<AirPolutionIndex> {
 
 	@SerializedName("lokasi")
 	private final String area;
@@ -36,21 +36,24 @@ public class AirPolutionIndex implements Comparable<AirPolutionIndex>{
 	}
 
 	public String getSevenAmIndex() {
-		if (TextUtils.isEmpty(sevenAmIndex)) {
+		if (TextUtils.isEmpty(sevenAmIndex)
+				|| !TextUtils.isDigitsOnly(sevenAmIndex)) {
 			return "--";
 		}
 		return sevenAmIndex;
 	}
 
 	public String getElevenAmIndex() {
-		if (TextUtils.isEmpty(elevenAmIndex)) {
+		if (TextUtils.isEmpty(elevenAmIndex)
+				|| !TextUtils.isDigitsOnly(elevenAmIndex)) {
 			return "--";
 		}
 		return elevenAmIndex;
 	}
 
 	public String getFivePmIndex() {
-		if (TextUtils.isEmpty(fivePmIndex)) {
+		if (TextUtils.isEmpty(fivePmIndex)
+				|| !TextUtils.isDigitsOnly(fivePmIndex)) {
 			return "--";
 		}
 		return fivePmIndex;
@@ -59,8 +62,8 @@ public class AirPolutionIndex implements Comparable<AirPolutionIndex>{
 	@Override
 	public String toString() {
 		return "AirPolutionIndex [area=" + area + ", state=" + state
-				+ ", time1=" + sevenAmIndex + ", time2=" + elevenAmIndex + ", time3=" + fivePmIndex
-				+ "]";
+				+ ", time1=" + sevenAmIndex + ", time2=" + elevenAmIndex
+				+ ", time3=" + fivePmIndex + "]";
 	}
 
 	@Override
