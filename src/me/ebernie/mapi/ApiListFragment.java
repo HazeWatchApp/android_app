@@ -10,6 +10,7 @@ import java.util.TreeSet;
 import me.ebernie.mapi.api.DataApi;
 import me.ebernie.mapi.db.DatabaseHelper.PersistableDataListener;
 import me.ebernie.mapi.model.AirPolutionIndex;
+import my.codeandroid.hazewatch.R;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher.OnRefreshListener;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;

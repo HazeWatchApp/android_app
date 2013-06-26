@@ -1,5 +1,6 @@
 package me.ebernie.mapi;
 
+import my.codeandroid.hazewatch.R;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher;
 import android.app.ActionBar;
 import android.app.Activity;
