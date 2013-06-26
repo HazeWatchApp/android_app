@@ -261,7 +261,7 @@ public class ApiListFragment extends Fragment implements
 			}
 			if (val > 0 && val <= 50) {
 				color = Color.parseColor("#00a651");
-			} else if (val > 51 && val <= 100) {
+			} else if (val > 50 && val <= 100) {
 				color = Color.parseColor("#99cc00");
 			} else if (val > 100 && val <= 200) {
 				color = Color.parseColor("#ffbb33");
