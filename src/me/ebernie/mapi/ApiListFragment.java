@@ -326,7 +326,7 @@ public class ApiListFragment extends Fragment implements
 		}
 
 		ActionBar ab = getActivity().getActionBar();
-		if (index != null && !index.isEmpty()) {
+		if ((index != null && !index.isEmpty())) {
 			grid.setVisibility(View.VISIBLE);
 			LayoutAnimationController gridAnim = new LayoutAnimationController(
 					stackFromBottom);
@@ -360,7 +360,7 @@ public class ApiListFragment extends Fragment implements
 			// currentSelection = selection;
 			// ab.setSelectedNavigationItem(currentSelection);
 			// }
-		} else if (index == null) {
+		} else if (indices.isEmpty()) {
 			// show emptyView
 			grid.setVisibility(View.GONE);
 			progressBar.animate().alpha(0).setDuration(200).setListener(new AnimatorListener() {
