@@ -61,6 +61,7 @@ public class ApiListFragment extends Fragment implements
 	private Date updateDate = new Date();
 	private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM");
 	private TextView date;
+	private boolean isDateVisible = false;
 
 	private static final String PREF_KEY_STATE_SELECTION = "state_selection";
 
@@ -114,8 +115,9 @@ public class ApiListFragment extends Fragment implements
 		pullToRefreshHelper.setRefreshableView(grid, handler, this);
 		date = (TextView) view.findViewById(R.id.date);
 		date.setTypeface(robotoBold);
-//		date.setText(getString(R.string.last_update) + " "
-//				+ sdf.format(updateDate));
+		if (isDateVisible) {
+			date.setVisibility(View.VISIBLE);
+		}
 		return view;
 	}
 
@@ -372,6 +374,7 @@ public class ApiListFragment extends Fragment implements
 		} else if (indices.isEmpty() && index == null) {
 			// show emptyView
 			grid.setVisibility(View.GONE);
+			date.setVisibility(View.GONE);
 			progressBar.animate().alpha(0).setDuration(200)
 					.setListener(new AnimatorListener() {
 
@@ -447,5 +450,6 @@ public class ApiListFragment extends Fragment implements
 		this.date.setText(getString(R.string.last_update) + " "
 				+ sdf.format(updateDate));
 		this.date.setVisibility(View.VISIBLE);
+		this.isDateVisible = true;
 	}
 }
