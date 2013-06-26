@@ -253,7 +253,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 					yesterday.set(Calendar.DAY_OF_MONTH,
 							yesterday.get(Calendar.DAY_OF_MONTH) - 1);
 					String param = "?date=" + sdf.format(yesterday.getTime());
-					listener.setUpdateDate(yesterday.getTime());
 					getIndexFromNetwork(listener, param);
 					listener.updateList(null);
 				}
@@ -313,7 +312,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 						}.getType();
 						List<AirPolutionIndex> indices = gson.fromJson(
 								jsonArray.toString(), type);
-						listener.setUpdateDate(new Date());
+						if (!indices.isEmpty()) {
+							listener.setUpdateDate(new Date());
+						}
 						listener.updateList(indices);
 						// also perform a save to the db after a network
 						// fetch

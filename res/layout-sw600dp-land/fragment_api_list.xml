@@ -4,8 +4,18 @@
     android:layout_height="match_parent"
     android:background="#eeeeee"
     android:orientation="vertical"
-    android:padding="8dp"
-    >
+    android:padding="8dp" >
+
+    <TextView
+        android:id="@+id/date"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:text="26/06"
+        android:textColor="@android:color/black"
+        android:textSize="20sp"
+        android:visibility="gone" />
 
     <GridView
         android:id="@+id/gridView_api"

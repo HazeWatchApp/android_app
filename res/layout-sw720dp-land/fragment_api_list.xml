@@ -6,6 +6,18 @@
     android:gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="8dp" >
+    
+    <TextView 
+        android:id="@+id/date"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:text="26/06"
+        android:layout_marginLeft="8dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"
+        />
 
     <GridView
         android:id="@+id/gridView_api"

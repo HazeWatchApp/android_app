@@ -16,6 +16,7 @@
         android:text="26/06"
         android:layout_marginLeft="8dp"
         android:layout_marginBottom="8dp"
+        android:visibility="gone"
         />
     
     <GridView
