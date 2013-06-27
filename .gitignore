@@ -14,14 +14,23 @@
 bin/
 gen/
 target/
+build/
 
 # Local configuration file (sdk path, etc)
 local.properties
+
 # Eclipse project files
 .project
+.classpath
 
-# IntelliJ
+# Intellij project files
+*.iml
+*.ipr
+*.iws
 .idea/
+
+#gradle
+.gradle/
 
 # temp files
 ~*
