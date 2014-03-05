@@ -1,20 +1,5 @@
 package me.ebernie.mapi;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.TreeSet;
-
-import me.ebernie.mapi.api.DataApi;
-import me.ebernie.mapi.db.DatabaseHelper.PersistableDataListener;
-import me.ebernie.mapi.model.AirPolutionIndex;
-import my.codeandroid.hazewatch.R;
-import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher;
-import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher.OnRefreshListener;
-import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
 import android.annotation.SuppressLint;
@@ -42,6 +27,24 @@ import android.widget.TextView;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.TreeSet;
+
+import de.keyboardsurfer.android.widget.crouton.Crouton;
+import de.keyboardsurfer.android.widget.crouton.Style;
+import me.ebernie.mapi.api.DataApi;
+import me.ebernie.mapi.db.DatabaseHelper.PersistableDataListener;
+import me.ebernie.mapi.model.AirPolutionIndex;
+import my.codeandroid.hazewatch.R;
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher;
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher.OnRefreshListener;
+import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
+
 @SuppressLint("SimpleDateFormat")
 public class ApiListFragment extends Fragment implements
 		PersistableDataListener, OnNavigationListener, OnRefreshListener {
@@ -58,10 +61,10 @@ public class ApiListFragment extends Fragment implements
 	private Animation stackFromBottom;
 	private View progressBar;
 	private TextView emptyText;
-	private Date updateDate = new Date();
+//	private Date updateDate = new Date();
 	private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM");
-	private TextView date;
-	private boolean isDateVisible = false;
+//	private TextView date;
+//	private boolean isDateVisible = false;
 
 	private static final String PREF_KEY_STATE_SELECTION = "state_selection";
 
@@ -113,11 +116,11 @@ public class ApiListFragment extends Fragment implements
 		pullToRefreshHelper = ((MainActivity) getActivity())
 				.getPullToRefreshHelper();
 		pullToRefreshHelper.setRefreshableView(grid, handler, this);
-		date = (TextView) view.findViewById(R.id.date);
-		date.setTypeface(robotoBold);
-		if (isDateVisible) {
-			date.setVisibility(View.VISIBLE);
-		}
+//		date = (TextView) view.findViewById(R.id.date);
+//		date.setTypeface(robotoBold);
+//		if (isDateVisible) {
+//			date.setVisibility(View.VISIBLE);
+//		}
 		return view;
 	}
 
@@ -374,7 +377,7 @@ public class ApiListFragment extends Fragment implements
 		} else if (indices.isEmpty() && index == null) {
 			// show emptyView
 			grid.setVisibility(View.GONE);
-			date.setVisibility(View.GONE);
+//			date.setVisibility(View.GONE);
 			progressBar.animate().alpha(0).setDuration(200)
 					.setListener(new AnimatorListener() {
 
@@ -446,10 +449,13 @@ public class ApiListFragment extends Fragment implements
 
 	@Override
 	public void setUpdateDate(Date date) {
-		this.updateDate = date;
-		this.date.setText(getString(R.string.last_update) + " "
-				+ sdf.format(updateDate));
-		this.date.setVisibility(View.VISIBLE);
-		this.isDateVisible = true;
+        Crouton.makeText(getActivity(), getString(R.string.last_update) + " "
+				+ sdf.format(date), Style.INFO).show();
+
+//		this.updateDate = date;
+//		this.date.setText(getString(R.string.last_update) + " "
+//				+ sdf.format(updateDate));
+//		this.date.setVisibility(View.VISIBLE);
+//		this.isDateVisible = true;
 	}
 }

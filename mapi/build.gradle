@@ -3,19 +3,29 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.4'
+        classpath 'com.android.tools.build:gradle:0.8.+'
     }
 }
+
+repositories {
+    mavenCentral()
+}
+
 apply plugin: 'android'
 
 dependencies {
     compile fileTree(dir: 'libs', include: '*.jar')
     compile project(':mapi-pulltorefresh:library')
+    compile('de.keyboardsurfer.android.widget:crouton:1.8.3') {
+        // exclusion is not neccessary, but generally a good idea.
+        exclude group: 'com.google.android', module: 'support-v4'
+    }
+    compile 'com.android.support:support-v4:18.0.+'
 }
 
 android {
     compileSdkVersion 17
-    buildToolsVersion "17.0.0"
+    buildToolsVersion "19.0.1"
 
     sourceSets {
         main {
