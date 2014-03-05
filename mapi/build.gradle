@@ -40,4 +40,32 @@ android {
 
         instrumentTest.setRoot('tests')
     }
+
+    //the file is at gradle.properties in the root of the project
+    File keystoreFile = file(project.property("keystore.dir"))
+
+    Properties props = new Properties()
+    props.load(new FileInputStream(keystoreFile))
+
+    signingConfigs {
+        release {
+            storeFile file(props['storeFile'])
+            keyAlias props['keyAlias']
+            storePassword props['storePassword']
+            keyPassword props['keyPassword']
+        }
+    }
+
+    buildTypes {
+
+        debug {
+        }
+
+        release {
+            debuggable false
+            runProguard false
+            signingConfig signingConfigs.release
+            proguardFile 'proguard-project.txt'
+        }
+    }
 }
