@@ -5,26 +5,19 @@
     android:background="#eeeeee"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:padding="8dp" >
-    
-    <TextView 
-        android:id="@+id/date"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textColor="@android:color/black"
-        android:text="26/06"
-        android:layout_marginLeft="8dp"
-        android:layout_marginBottom="8dp"
-        android:visibility="gone"
-        android:freezesText="true"
-        />
+    >
 
     <GridView
+        android:paddingTop="@dimen/paddingTop"
+        android:paddingBottom="@dimen/paddingBottom"
+        android:paddingLeft="@dimen/paddingLeft"
+        android:paddingRight="@dimen/paddingRight"
         android:id="@+id/gridView_api"
         android:layout_width="1100dp"
         android:layout_height="fill_parent"
         android:horizontalSpacing="4dp"
+        android:scrollbarStyle="outsideOverlay"
+        android:clipToPadding="false"
         android:numColumns="@integer/num_cols"
         android:verticalSpacing="8dp" />
 

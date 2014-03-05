@@ -1,3 +1,7 @@
 <resources>
     <integer name="num_cols">1</integer>
+    <dimen name="paddingTop">8dp</dimen>
+    <dimen name="paddingBottom">8dp</dimen>
+    <dimen name="paddingLeft">8dp</dimen>
+    <dimen name="paddingRight">8dp</dimen>
 </resources>
