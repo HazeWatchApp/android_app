@@ -54,13 +54,14 @@ public class MapiExtension extends DashClockExtension implements DatabaseHelper.
             }
 
             // Publish the extension data update.
+            String content = "API - 7 am: " + api1 + ", 11 am: " + api2 + ", 5 pm: " + api3;
             publishUpdate(new ExtensionData()
                     .visible(true)
                     .icon(R.drawable.hazeicon)
-                    .status("Hazewatch")
-                    .expandedTitle("API - 7 am: " + api1 + ", 11 am: " + api2 + ", 5pm: " + api3)
-                    .expandedBody("For " + area)
-                    .contentDescription("Completely different text for accessibility if needed.")
+                    .status(getString(R.string.app_name))
+                    .expandedTitle(content)
+                    .expandedBody(area)
+                    .contentDescription(content)
                     .clickIntent(new Intent(this, MainActivity.class)));
         }
     }
