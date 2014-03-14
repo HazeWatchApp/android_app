@@ -93,6 +93,7 @@ public class ApiListFragment extends Fragment implements
         switch (item.getItemId()) {
             case R.id.menu_refresh:
                 DataApi.INSTANCE.getIndex(getActivity(), this, true);
+                mPullToRefreshLayout.setRefreshing(true);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
