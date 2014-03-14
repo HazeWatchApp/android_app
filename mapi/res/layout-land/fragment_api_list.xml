@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#eeeeee"
+    android:id="@+id/ptr_layout"
     android:gravity="center_horizontal"
-    android:orientation="vertical"
-     >
-    
+    android:orientation="vertical">
+
     <GridView
         android:padding="@dimen/paddingBottom"
         android:id="@+id/gridView_api"
         android:layout_width="360dp"
         android:layout_height="fill_parent"
         android:horizontalSpacing="4dp"
+        android:layout_gravity="center_horizontal"
         android:numColumns="@integer/num_cols"
         android:scrollbarStyle="outsideOverlay"
         android:clipToPadding="false"
         android:verticalSpacing="8dp" />
-    
+
     <include
         android:id="@+id/empty_layout"
         android:layout_width="fill_parent"
@@ -25,4 +26,4 @@
         layout="@layout/empty"
         android:visibility="gone" />
 
-</LinearLayout>
+</uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout>

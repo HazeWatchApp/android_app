@@ -113,7 +113,6 @@ public class ApiListFragment extends Fragment implements
         progressBar = emptyView.findViewById(R.id.progress);
 
         mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.ptr_layout);
-
         // Now setup the PullToRefreshLayout
         ActionBarPullToRefresh.from(getActivity())
                 // Mark All Children as pullable
