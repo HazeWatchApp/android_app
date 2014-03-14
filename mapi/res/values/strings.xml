@@ -9,5 +9,8 @@
     <string name="error">Ops, the haze seems to hit the server and we are not able to get data (or internet is not available at the moment, but we won\'t laugh at you)</string>
     <string name="all_states">All States</string>
     <string name="last_update">Last update:</string>
+    <string name="hazewatch">Hazewatch</string>
+    <string name="dashclock_desc">Get air pollution index readings (API) for your area</string>
+    <string name="dashclock_settings">Hazewatch Dashclock Settings</string>
 
 </resources>
