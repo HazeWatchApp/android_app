@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/ptr_layout"
     android:background="#eeeeee"
     android:orientation="vertical"
     >
@@ -24,4 +26,4 @@
         layout="@layout/empty"
         android:visibility="gone" />
 
-</LinearLayout>
+</uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout>

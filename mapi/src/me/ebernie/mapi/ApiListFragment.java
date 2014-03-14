@@ -41,8 +41,9 @@ import me.ebernie.mapi.api.DataApi;
 import me.ebernie.mapi.db.DatabaseHelper.PersistableDataListener;
 import me.ebernie.mapi.model.AirPolutionIndex;
 import my.codeandroid.hazewatch.R;
-import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher;
-import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher.OnRefreshListener;
+import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
+import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
 
 @SuppressLint("SimpleDateFormat")
@@ -57,15 +58,13 @@ public class ApiListFragment extends Fragment implements
     private Typeface robotoLightItalic = null;
     private Typeface robotoLight = null;
     private Typeface robotoBold = null;
-    private PullToRefreshAttacher pullToRefreshHelper;
     private Animation stackFromBottom;
     private View progressBar;
     private TextView emptyText;
     //	private Date updateDate = new Date();
     private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM");
-//	private TextView date;
-//	private boolean isDateVisible = false;
 
+    private PullToRefreshLayout mPullToRefreshLayout;
     private static final String PREF_KEY_STATE_SELECTION = "state_selection";
 
     @Override
@@ -93,7 +92,6 @@ public class ApiListFragment extends Fragment implements
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_refresh:
-                pullToRefreshHelper.setRefreshing(true);
                 DataApi.INSTANCE.getIndex(getActivity(), this, true);
                 return true;
             default:
@@ -112,15 +110,18 @@ public class ApiListFragment extends Fragment implements
         emptyText = (TextView) emptyView.findViewById(R.id.empty_text);
         emptyText.setTypeface(robotoLightItalic);
         progressBar = emptyView.findViewById(R.id.progress);
-        PullToRefreshAttacher.ViewDelegate handler = new AbsListViewDelegate();
-        pullToRefreshHelper = ((MainActivity) getActivity())
-                .getPullToRefreshHelper();
-        pullToRefreshHelper.setRefreshableView(grid, handler, this);
-//		date = (TextView) view.findViewById(R.id.date);
-//		date.setTypeface(robotoBold);
-//		if (isDateVisible) {
-//			date.setVisibility(View.VISIBLE);
-//		}
+
+        mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.ptr_layout);
+
+        // Now setup the PullToRefreshLayout
+        ActionBarPullToRefresh.from(getActivity())
+                // Mark All Children as pullable
+                .allChildrenArePullable()
+                        // Set the OnRefreshListener
+                .listener(this).useViewDelegate(GridView.class, new AbsListViewDelegate())
+                // Finally commit the setup to our PullToRefreshLayout
+                .setup(mPullToRefreshLayout);
+
         return view;
     }
 
@@ -134,7 +135,7 @@ public class ApiListFragment extends Fragment implements
             ab.setSelectedNavigationItem(currentSelection);
         } else {
             // async call to fetch AirPolutionIndex
-            pullToRefreshHelper.setRefreshing(true);
+            mPullToRefreshLayout.setRefreshing(true);
             DataApi.INSTANCE.getIndex(getActivity(), this);
         }
     }
@@ -332,7 +333,7 @@ public class ApiListFragment extends Fragment implements
     @Override
     public void updateList(List<AirPolutionIndex> index) {
 
-        pullToRefreshHelper.setRefreshComplete();
+        mPullToRefreshLayout.setRefreshComplete();
 
         if (getActivity() == null) {
             return;
