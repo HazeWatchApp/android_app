@@ -14,7 +14,7 @@
         android:layout_marginLeft="8dp"
         android:maxLines="1"
         android:text="Balok Baru, Kuantan"
-        android:textSize="18sp" />
+        android:textSize="16sp" />
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -73,7 +73,7 @@
                 android:layout_toLeftOf="@+id/time1"
                 android:paddingRight="16dp"
                 android:text="147"
-                android:textSize="30sp" />
+                android:textSize="26sp" />
 
             <TextView
                 android:id="@+id/time1"
@@ -95,7 +95,7 @@
                 android:layout_toLeftOf="@+id/time2"
                 android:paddingRight="16dp"
                 android:text="147"
-                android:textSize="30sp" />
+                android:textSize="26sp" />
 
             <TextView
                 android:id="@+id/time2"
