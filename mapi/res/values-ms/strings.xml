@@ -9,5 +9,8 @@
     <string name="error">Ops, pelayan kami dilanda jerebu dan kami tidak dapat mencapai maklumat buat sementara waktu (ataupun talian anda mempunyai masalah)</string>
     <string name="all_states">Semua negeri</string>
     <string name="last_update">Kemaskini terbaru:</string>
+    <string name="hazewatch">Hazewatch</string>
+    <string name="dashclock_desc">Dapatkan bacaan index pencemaran (API) untuk kawasan anda</string>
+    <string name="dashclock_settings">Tetapan Hazewatch Dashclock</string>
     
 </resources>
