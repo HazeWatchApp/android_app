@@ -185,7 +185,7 @@ public class ApiListFragment extends Fragment implements
 
                 holder.time1.setText(R.string.eleven);
                 holder.index1.setText(index.getElevenAmIndex());
-                holder.index2.setTextColor(getColor(index.getElevenAmIndex()));
+                holder.index1.setTextColor(getColor(index.getElevenAmIndex()));
 
                 holder.time2.setText(R.string.five);
                 holder.index2.setText(index.getFivePmIndex());
