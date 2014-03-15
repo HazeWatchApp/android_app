@@ -60,6 +60,8 @@ android {
     buildTypes {
 
         debug {
+            packageNameSuffix ".debug"
+            versionNameSuffix "-debug"
         }
 
         release {
