@@ -3,6 +3,7 @@ package me.ebernie.mapi.dashclock;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 
 import com.google.android.apps.dashclock.api.DashClockExtension;
 import com.google.android.apps.dashclock.api.ExtensionData;
@@ -55,10 +56,19 @@ public class MapiExtension extends DashClockExtension implements DatabaseHelper.
 
             // Publish the extension data update.
             String content = "API - 7 am: " + api1 + ", 11 am: " + api2 + ", 5 pm: " + api3;
+            String shortContent = null;
+            if (TextUtils.isDigitsOnly(api3)) {
+                shortContent = api3;
+            } else if (TextUtils.isDigitsOnly(api2)) {
+                shortContent = api2;
+            } else if (TextUtils.isDigitsOnly(api1)) {
+                shortContent = api1;
+            }
+
             publishUpdate(new ExtensionData()
                     .visible(true)
                     .icon(R.drawable.hazeicon)
-                    .status(getString(R.string.app_name))
+                    .status("API: " + shortContent)
                     .expandedTitle(content)
                     .expandedBody(area)
                     .contentDescription(content)

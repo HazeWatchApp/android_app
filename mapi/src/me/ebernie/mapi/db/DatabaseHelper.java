@@ -1,16 +1,5 @@
 package me.ebernie.mapi.db;
 
-import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
-import me.ebernie.mapi.model.AirPolutionIndex;
-
-import org.json.JSONArray;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentValues;
@@ -29,6 +18,17 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
+import org.json.JSONArray;
+
+import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import me.ebernie.mapi.model.AirPolutionIndex;
 
 @SuppressLint("SimpleDateFormat")
 public class DatabaseHelper extends SQLiteOpenHelper {
@@ -246,21 +246,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 		@Override
 		public void onErrorResponse(final VolleyError error) {
-
-			((Activity) context).runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					Log.e(TAG, error.getMessage(), error);
-					Calendar yesterday = Calendar.getInstance();
-					yesterday.set(Calendar.DAY_OF_MONTH,
-							yesterday.get(Calendar.DAY_OF_MONTH) - 1);
-					String param = "?date=" + sdf.format(yesterday.getTime());
-					getIndexFromNetwork(listener, param);
-					listener.updateList(null);
-				}
-			});
-		}
-	}
+            if (context instanceof Activity) {
+                ((Activity) context).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.e(TAG, error.getMessage(), error);
+                        Calendar yesterday = Calendar.getInstance();
+                        yesterday.set(Calendar.DAY_OF_MONTH,
+                                yesterday.get(Calendar.DAY_OF_MONTH) - 1);
+                        String param = "?date=" + sdf.format(yesterday.getTime());
+                        getIndexFromNetwork(listener, param);
+                        listener.updateList(null);
+                    }
+                });
+            }
+        }
+    }
 	
 	private class NonRetryingErrorListener implements Response.ErrorListener {
 
