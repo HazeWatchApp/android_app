@@ -57,11 +57,11 @@ public class MapiExtension extends DashClockExtension implements DatabaseHelper.
             // Publish the extension data update.
             String content = "API - 7 am: " + api1 + ", 11 am: " + api2 + ", 5 pm: " + api3;
             String shortContent = null;
-            if (TextUtils.isDigitsOnly(api3)) {
+            if (api3 != null && TextUtils.isDigitsOnly(api3)) {
                 shortContent = api3;
-            } else if (TextUtils.isDigitsOnly(api2)) {
+            } else if (api2 != null && TextUtils.isDigitsOnly(api2)) {
                 shortContent = api2;
-            } else if (TextUtils.isDigitsOnly(api1)) {
+            } else if (api1 != null && TextUtils.isDigitsOnly(api1)) {
                 shortContent = api1;
             }
 
