@@ -1,0 +1,9 @@
+<resources>
+
+    <declare-styleable name="DrawShadowFrameLayout">
+        <attr name="ds_shadowDrawable" format="reference" />
+        <attr name="ds_shadowVisible" format="boolean" />
+        <attr name="ds_shadowTopOffset" format="dimension" />
+    </declare-styleable>
+
+</resources>

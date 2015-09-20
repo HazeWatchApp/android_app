@@ -4,4 +4,17 @@
     <dimen name="paddingBottom">8dp</dimen>
     <dimen name="paddingLeft">8dp</dimen>
     <dimen name="paddingRight">8dp</dimen>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+
+    <dimen name="font_size_area_collapsed">18sp</dimen>
+    <dimen name="font_size_area_expanded">24sp</dimen>
+
+    <dimen name="font_size_api_collapsed">40sp</dimen>
+    <dimen name="font_size_api_expanded">80sp</dimen>
+
+    <dimen name="appbar_elevation">4dp</dimen>
+
 </resources>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="me.ebernie.mapi.MainActivity2">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/actionbar_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?colorPrimary"
+        android:minHeight="?actionBarSize"
+        app:layout_behavior="me.ebernie.mapi.widget.ToolbarShadowBehavior" />
+
+    <me.ebernie.mapi.widget.DrawShadowFrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?actionBarSize"
+        app:ds_shadowDrawable="@drawable/header_shadow"
+        app:layout_behavior="me.ebernie.mapi.widget.ShadowFrameLayoutShadowBehavior" />
+
+</android.support.design.widget.CoordinatorLayout>
