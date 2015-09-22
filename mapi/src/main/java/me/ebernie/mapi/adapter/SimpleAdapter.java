@@ -72,9 +72,15 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
         Api api = mData.get(position);
         String index = api.getLatest().getIndex();
         holder.mTownArea.setText(api.getArea());
-        holder.mCurIndex.setText(index);
-        holder.mCardView.setCardBackgroundColor(fetchColorForApiIndex(Integer.parseInt(index)));
-
+        
+        if(!TextUtils.isEmpty(index) && TextUtils.isDigitsOnly(index) {
+            holder.mCurIndex.setText(index);
+            holder.mCardView.setCardBackgroundColor(fetchColorForApiIndex(Integer.parseInt(index)));
+        } else {
+            holder.mCurIndex.setText("--");
+            holder.mCardView.setCardBackgroundColor(Color.LTGRAY);
+        }
+        
         if (mExpandedPos.get(position, false)) {
             updateChartData(holder.mChart, api);
             if (holder.mChart.getVisibility() != View.VISIBLE) {
