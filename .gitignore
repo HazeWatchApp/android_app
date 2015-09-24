@@ -28,6 +28,7 @@ local.properties
 *.ipr
 *.iws
 .idea/
+.mapi/*.iml
 
 #gradle
 .gradle/
