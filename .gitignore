@@ -36,3 +36,7 @@ local.properties
 # temp files
 ~*
 *~
+
+# secret
+mapi/src/main/res/values/config.xml
+crashlytics.properties
