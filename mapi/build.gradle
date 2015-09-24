@@ -37,7 +37,6 @@ dependencies {
 
     // to be removed
     compile 'com.google.guava:guava:18.0'
-    compile 'com.google.android.apps.dashclock:dashclock-api:2.0.0'
     compile 'com.github.chrisbanes.actionbarpulltorefresh:library:0.9.9'
     compile('de.keyboardsurfer.android.widget:crouton:1.8.5@aar') {
         // exclusion is not neccessary, but generally a good idea.
