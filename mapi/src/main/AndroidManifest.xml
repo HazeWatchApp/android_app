@@ -19,34 +19,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="me.ebernie.mapi.dashclock.DashClockSettings"
-            android:exported="true"
-            android:label="@string/dashclock_settings" />
-
-        <service
-            android:name="me.ebernie.mapi.dashclock.MapiExtension"
-            android:icon="@drawable/hazeicon"
-            android:label="@string/hazewatch"
-            android:permission="com.google.android.apps.dashclock.permission.READ_EXTENSION_DATA">
-            <intent-filter>
-                <action android:name="com.google.android.apps.dashclock.Extension" />
-            </intent-filter>
-
-            <meta-data
-                android:name="protocolVersion"
-                android:value="2" />
-            <meta-data
-                android:name="worldReadable"
-                android:value="true" />
-            <meta-data
-                android:name="description"
-                android:value="@string/dashclock_desc" />
-            <meta-data
-                android:name="settingsActivity"
-                android:value="me.ebernie.mapi.dashclock.DashClockSettings" />
-        </service>
-
     </application>
 
 </manifest>

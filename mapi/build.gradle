@@ -35,12 +35,4 @@ dependencies {
     compile 'com.jakewharton:butterknife:7.0.1'
     compile 'com.github.PhilJay:MPAndroidChart:v2.1.4'
 
-    // to be removed
-    compile 'com.google.guava:guava:18.0'
-    compile 'com.github.chrisbanes.actionbarpulltorefresh:library:0.9.9'
-    compile('de.keyboardsurfer.android.widget:crouton:1.8.5@aar') {
-        // exclusion is not neccessary, but generally a good idea.
-        exclude group: 'com.google.android', module: 'support-v4'
-    }
-    testCompile 'junit:junit:4.12'
 }
