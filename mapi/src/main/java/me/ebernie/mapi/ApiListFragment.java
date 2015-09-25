@@ -5,16 +5,20 @@ import android.graphics.Rect;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.os.AsyncTaskCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -23,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,6 +34,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -40,23 +44,27 @@ import me.ebernie.mapi.adapter.SimpleAdapter;
 import me.ebernie.mapi.adapter.SimpleSectionedRecyclerViewAdapter;
 import me.ebernie.mapi.adapter.SpacesItemDecoration;
 import me.ebernie.mapi.model.Api;
+import me.ebernie.mapi.widget.FixedSwipeRefreshLayout;
 import me.ebernie.mapi.util.MultiMap;
 import me.ebernie.mapi.widget.EmptyRecyclerView;
+import my.codeandroid.hazewatch.BuildConfig;
 import my.codeandroid.hazewatch.R;
 
-/**
- * Created by andhie on 9/19/15.
- */
-public class ApiListFragment2 extends Fragment {
+public class ApiListFragment extends Fragment {
 
-    public static ApiListFragment2 newInstance() {
-        return new ApiListFragment2();
+    public static final String DATE_FORMAT = "d MMMM yyyy, EEEE";
+    private static final String TAG = ApiListFragment.class.getName();
+
+    public static ApiListFragment newInstance() {
+        return new ApiListFragment();
+
     }
-
+    @Bind(R.id.refreshLayout)
+    FixedSwipeRefreshLayout refreshLayout;
     @Bind(R.id.listContainer)
     View mListContainer;
-    @Bind(R.id.progressContainer)
-    View mProgressContainer;
+//    @Bind(R.id.progressContainer)
+//    View mProgressContainer;
 
     @Bind(android.R.id.list)
     EmptyRecyclerView mList;
@@ -68,7 +76,7 @@ public class ApiListFragment2 extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_api_list2, container, false);
+        return inflater.inflate(R.layout.fragment_api_list, container, false);
     }
 
     @Override
@@ -76,7 +84,7 @@ public class ApiListFragment2 extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
 
-        String date = new SimpleDateFormat("d MMMM yyyy, EEEE")
+        String date = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
                 .format(new Date());
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(date);
 
@@ -86,6 +94,19 @@ public class ApiListFragment2 extends Fragment {
         mList.setEmptyView(mEmpty);
         mList.setAdapter(new SimpleAdapter(new ArrayList<Api>()));
 
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if (BuildConfig.DEBUG) Log.d(TAG, "Manually refreshing");
+                fetchData();
+            }
+        });
+        refreshLayout.setScrollableView(mList);
+        refreshLayout.setRefreshing(true);
+        fetchData();
+    }
+
+    private void fetchData() {
         FetchDataTask fetchDataTask = new FetchDataTask(new FetchDataTask.DataListener() {
             @Override
             public void onDataReady(List<Api> list) {
@@ -125,8 +146,7 @@ public class ApiListFragment2 extends Fragment {
                 setListShown(true, isResumed());
             }
         });
-
-        AsyncTaskCompat.executeParallel(fetchDataTask);
+        AsyncTaskCompat.executeParallel(fetchDataTask, getString(R.string.data_source));
     }
 
     @Override
@@ -146,42 +166,50 @@ public class ApiListFragment2 extends Fragment {
      *                new state.
      */
     private void setListShown(boolean shown, boolean animate) {
+        refreshLayout.setRefreshing(false);
+        if (BuildConfig.DEBUG) Log.d(TAG, "Setting list shown");
+
+        String msg = (mList.getAdapter() == null || mList.getAdapter().getItemCount() == 0)
+                ? getString(R.string.unable_to_load_data)
+                : getString(R.string.data_loaded);
+        Snackbar.make(refreshLayout, msg, Snackbar.LENGTH_SHORT).show();
+
         if ((mListContainer.getVisibility() == View.VISIBLE) == shown) {
             return;
         }
         if (shown) {
             if (animate) {
-                mProgressContainer.startAnimation(AnimationUtils.loadAnimation(
-                        getActivity(), android.R.anim.fade_out));
+//                mProgressContainer.startAnimation(AnimationUtils.loadAnimation(
+//                        getActivity(), android.R.anim.fade_out));
                 mListContainer.startAnimation(AnimationUtils.loadAnimation(
                         getActivity(), android.R.anim.fade_in));
             } else {
-                mProgressContainer.clearAnimation();
+//                mProgressContainer.clearAnimation();
                 mListContainer.clearAnimation();
             }
-            mProgressContainer.setVisibility(View.GONE);
+//            mProgressContainer.setVisibility(View.GONE);
             mListContainer.setVisibility(View.VISIBLE);
         } else {
             if (animate) {
-                mProgressContainer.startAnimation(AnimationUtils.loadAnimation(
-                        getActivity(), android.R.anim.fade_in));
+//                mProgressContainer.startAnimation(AnimationUtils.loadAnimation(
+//                        getActivity(), android.R.anim.fade_in));
                 mListContainer.startAnimation(AnimationUtils.loadAnimation(
                         getActivity(), android.R.anim.fade_out));
             } else {
-                mProgressContainer.clearAnimation();
+//                mProgressContainer.clearAnimation();
                 mListContainer.clearAnimation();
             }
-            mProgressContainer.setVisibility(View.VISIBLE);
+//            mProgressContainer.setVisibility(View.VISIBLE);
             mListContainer.setVisibility(View.GONE);
         }
     }
 
-    private static class FetchDataTask extends AsyncTask<Void, Void, List<Api>> {
+    private static class FetchDataTask extends AsyncTask<String, Void, List<Api>> {
 
         public interface DataListener {
-            public void onDataReady(List<Api> list);
+            void onDataReady(List<Api> list);
 
-            public void onError();
+            void onError();
         }
 
         private DataListener mListener;
@@ -191,13 +219,13 @@ public class ApiListFragment2 extends Fragment {
         }
 
         @Override
-        protected List<Api> doInBackground(Void... params) {
+        protected List<Api> doInBackground(String... params) {
             HttpURLConnection urlConnection = null;
             InputStreamReader reader = null;
+            String dataSource = params[0];
             List<Api> list = null;
-
             try {
-                URL url = new URL("https://storage.googleapis.com/hazewatchapp.com/apims_data/index.json");
+                URL url = new URL(dataSource);
                 urlConnection = (HttpsURLConnection) url.openConnection();
                 InputStream in = new BufferedInputStream(urlConnection.getInputStream());
                 reader = new InputStreamReader(in);
@@ -205,10 +233,8 @@ public class ApiListFragment2 extends Fragment {
                 list = new Gson().fromJson(reader, new TypeToken<ArrayList<Api>>() {
                 }.getType());
 
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
             } catch (IOException e) {
-                e.printStackTrace();
+                Crashlytics.getInstance().core.logException(e);
             } finally {
                 if (urlConnection != null) {
                     urlConnection.disconnect();
@@ -217,7 +243,7 @@ public class ApiListFragment2 extends Fragment {
                     try {
                         reader.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        Crashlytics.getInstance().core.logException(e);
                     }
                 }
             }
