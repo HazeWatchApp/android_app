@@ -6,18 +6,15 @@
     <string name="seven">7 AM</string>
     <string name="five">5 PM</string>
     <string name="refresh">Refresh</string>
-    <string name="error">Ops, the haze seems to hit the server and we are not able to get data (or internet is not available at the moment)</string>
+    <string name="error">Oops, the haze seems to hit the server and we are not able to get data (or internet is not available at the moment)</string>
     <string name="all_states">All States</string>
     <string name="last_update">Last update:</string>
     <string name="hazewatch">Hazewatch</string>
-    <string name="dashclock_desc">Get air pollution index (API) readings for your area</string>
-    <string name="dashclock_settings">Hazewatch Dashclock Settings</string>
-
 
     <string name="font_medium">fonts/Roboto-Medium.ttf</string>
     <string name="font_light">fonts/Roboto-Light.ttf</string>
     <string name="font_regular">fonts/Roboto-Regular.ttf</string>
+    <string name="data_loaded">Haze data loaded</string>
+    <string name="unable_to_load_data">Too hazy to load data</string>
 
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
