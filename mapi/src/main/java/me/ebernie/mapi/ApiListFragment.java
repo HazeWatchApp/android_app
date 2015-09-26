@@ -44,9 +44,9 @@ import me.ebernie.mapi.adapter.SimpleAdapter;
 import me.ebernie.mapi.adapter.SimpleSectionedRecyclerViewAdapter;
 import me.ebernie.mapi.adapter.SpacesItemDecoration;
 import me.ebernie.mapi.model.Api;
-import me.ebernie.mapi.widget.FixedSwipeRefreshLayout;
 import me.ebernie.mapi.util.MultiMap;
 import me.ebernie.mapi.widget.EmptyRecyclerView;
+import me.ebernie.mapi.widget.MultiSwipeRefreshLayout;
 import my.codeandroid.hazewatch.BuildConfig;
 import my.codeandroid.hazewatch.R;
 
@@ -59,12 +59,11 @@ public class ApiListFragment extends Fragment {
         return new ApiListFragment();
 
     }
+
     @Bind(R.id.refreshLayout)
-    FixedSwipeRefreshLayout refreshLayout;
+    MultiSwipeRefreshLayout mRefreshLayout;
     @Bind(R.id.listContainer)
     View mListContainer;
-//    @Bind(R.id.progressContainer)
-//    View mProgressContainer;
 
     @Bind(android.R.id.list)
     EmptyRecyclerView mList;
@@ -94,16 +93,17 @@ public class ApiListFragment extends Fragment {
         mList.setEmptyView(mEmpty);
         mList.setAdapter(new SimpleAdapter(new ArrayList<Api>()));
 
-        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Manually refreshing");
                 fetchData();
             }
         });
-        refreshLayout.setScrollableView(mList);
-        refreshLayout.setRefreshing(true);
+        mRefreshLayout.setSwipeableChildren(android.R.id.list, android.R.id.empty);
+        mRefreshLayout.setRefreshing(true);
         fetchData();
+
     }
 
     private void fetchData() {
@@ -166,13 +166,13 @@ public class ApiListFragment extends Fragment {
      *                new state.
      */
     private void setListShown(boolean shown, boolean animate) {
-        refreshLayout.setRefreshing(false);
+        mRefreshLayout.setRefreshing(false);
         if (BuildConfig.DEBUG) Log.d(TAG, "Setting list shown");
 
         String msg = (mList.getAdapter() == null || mList.getAdapter().getItemCount() == 0)
                 ? getString(R.string.unable_to_load_data)
                 : getString(R.string.data_loaded);
-        Snackbar.make(refreshLayout, msg, Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(mRefreshLayout, msg, Snackbar.LENGTH_SHORT).show();
 
         if ((mListContainer.getVisibility() == View.VISIBLE) == shown) {
             return;
