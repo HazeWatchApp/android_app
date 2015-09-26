@@ -9,7 +9,8 @@
         android:id="@+id/listContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone">
+        android:visibility="gone"
+        tools:visibility="visible">
 
         <me.ebernie.mapi.widget.EmptyRecyclerView
             android:id="@android:id/list"
