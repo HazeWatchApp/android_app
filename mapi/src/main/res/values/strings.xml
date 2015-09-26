@@ -17,4 +17,6 @@
     <string name="data_loaded">Haze data loaded</string>
     <string name="unable_to_load_data">Too hazy to load data</string>
 
+    <string name="location_rationale">Your location is used to identify the nearest monitoring station.</string>
+    <string name="location_denied">Location permission denied</string>
 </resources>
