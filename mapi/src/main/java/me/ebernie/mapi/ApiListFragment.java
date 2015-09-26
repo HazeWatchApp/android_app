@@ -2,6 +2,7 @@ package me.ebernie.mapi;
 
 
 import android.graphics.Rect;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -19,6 +20,7 @@ import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 
 import com.crashlytics.android.Crashlytics;
+import com.google.android.gms.location.LocationListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -31,12 +33,11 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -44,27 +45,30 @@ import me.ebernie.mapi.adapter.SimpleAdapter;
 import me.ebernie.mapi.adapter.SimpleSectionedRecyclerViewAdapter;
 import me.ebernie.mapi.adapter.SpacesItemDecoration;
 import me.ebernie.mapi.model.Api;
-import me.ebernie.mapi.widget.FixedSwipeRefreshLayout;
+import me.ebernie.mapi.util.DistanceComparator;
+import me.ebernie.mapi.util.LocationUtil;
 import me.ebernie.mapi.util.MultiMap;
 import me.ebernie.mapi.widget.EmptyRecyclerView;
+import me.ebernie.mapi.widget.MultiSwipeRefreshLayout;
 import my.codeandroid.hazewatch.BuildConfig;
 import my.codeandroid.hazewatch.R;
 
-public class ApiListFragment extends Fragment {
+public class ApiListFragment extends Fragment implements LocationListener {
 
     public static final String DATE_FORMAT = "d MMMM yyyy, EEEE";
     private static final String TAG = ApiListFragment.class.getName();
+
+    private static final float DISTANCE_DELTA_METERS = 1000f;
 
     public static ApiListFragment newInstance() {
         return new ApiListFragment();
 
     }
+
     @Bind(R.id.refreshLayout)
-    FixedSwipeRefreshLayout refreshLayout;
+    MultiSwipeRefreshLayout mRefreshLayout;
     @Bind(R.id.listContainer)
     View mListContainer;
-//    @Bind(R.id.progressContainer)
-//    View mProgressContainer;
 
     @Bind(android.R.id.list)
     EmptyRecyclerView mList;
@@ -72,6 +76,11 @@ public class ApiListFragment extends Fragment {
     View mEmpty;
 
     SimpleSectionedRecyclerViewAdapter mAdapter;
+
+    @Nullable
+    private Location mLastLocation;
+
+    private List<Api> mApiList = Collections.emptyList();
 
     @Nullable
     @Override
@@ -94,49 +103,37 @@ public class ApiListFragment extends Fragment {
         mList.setEmptyView(mEmpty);
         mList.setAdapter(new SimpleAdapter(new ArrayList<Api>()));
 
-        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Manually refreshing");
                 fetchData();
             }
         });
-        refreshLayout.setScrollableView(mList);
-        refreshLayout.setRefreshing(true);
+        mRefreshLayout.setSwipeableChildren(android.R.id.list, android.R.id.empty);
+        mRefreshLayout.setRefreshing(true);
         fetchData();
+
+        LocationUtil.addLocationListener(this);
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        LocationUtil.addLocationListener(this);
     }
 
     private void fetchData() {
         FetchDataTask fetchDataTask = new FetchDataTask(new FetchDataTask.DataListener() {
             @Override
             public void onDataReady(List<Api> list) {
-                // 14 states, 10 area max (sarawak)
-                MultiMap<String, Api> indices = new MultiMap<>();
-                Api api;
-                for (int i = 0, size = list.size(); i < size; i++) {
-                    api = list.get(i);
-                    indices.put(api.getState(), api);
+                mApiList = list;
+                if (mLastLocation == null) {
+                    sortByAlphabet(list);
+                } else {
+                    sortForDistance(list, mLastLocation);
                 }
-
-                List<Api> fullList = new LinkedList<>();
-
-                List<SimpleSectionedRecyclerViewAdapter.Section> sections = new ArrayList<>(14);
-
-                String[] array = indices.keySet().toArray(new String[14]);
-                Arrays.sort(array);
-
-//                Log.i("tag", "total states = " + array.length);
-                for (int i = 0, size = array.length; i < size; i++) {
-                    String key = array[i];
-                    sections.add(new SimpleSectionedRecyclerViewAdapter.Section(fullList.size(), key));
-                    fullList.addAll(indices.get(key));
-//                    Log.i("tag", key + ": total area = " + indices.get(key).size());
-                }
-
-                SimpleAdapter apiAdapter = new SimpleAdapter(fullList);
-                mAdapter = new SimpleSectionedRecyclerViewAdapter(R.layout.list_item_location, android.R.id.text1, apiAdapter);
-                mAdapter.setSections(sections);
-                mList.setAdapter(mAdapter);
 
                 setListShown(true, isResumed());
             }
@@ -155,6 +152,96 @@ public class ApiListFragment extends Fragment {
         ButterKnife.unbind(this);
     }
 
+    @Override
+    public void onLocationChanged(Location location) {
+        if (location != null) {
+            if (mLastLocation == null || mLastLocation.distanceTo(location) >= DISTANCE_DELTA_METERS) {
+                sortForDistance(mApiList, location);
+                mLastLocation = location;
+            }
+        }
+    }
+
+    private void sortByAlphabet(List<Api> list) {
+        //todo merge the algo with sortByDistance
+
+        // 14 states, 10 area max (sarawak)
+        MultiMap<String, Api> indices = new MultiMap<>();
+        Api api;
+        for (int i = 0, size = list.size(); i < size; i++) {
+            api = list.get(i);
+            indices.put(api.getState(), api);
+        }
+
+        List<Api> fullList = new LinkedList<>();
+
+        List<SimpleSectionedRecyclerViewAdapter.Section> sections = new ArrayList<>(14);
+
+        String[] array = indices.keySet().toArray(new String[14]);
+        Arrays.sort(array);
+
+//                Log.i("tag", "total states = " + array.length);
+        for (int i = 0, size = array.length; i < size; i++) {
+            String key = array[i];
+            sections.add(new SimpleSectionedRecyclerViewAdapter.Section(fullList.size(), key));
+            fullList.addAll(indices.get(key));
+//                    Log.i("tag", key + ": total area = " + indices.get(key).size());
+        }
+
+        SimpleAdapter apiAdapter = new SimpleAdapter(fullList);
+        mAdapter = new SimpleSectionedRecyclerViewAdapter(R.layout.list_item_location, android.R.id.text1, apiAdapter);
+        mAdapter.setSections(sections);
+        mList.setAdapter(mAdapter);
+    }
+
+    private void sortForDistance(List<Api> list, @Nullable Location location) {
+        //todo merge the algo with sortByAlphabet
+
+        if (location == null) {
+            sortByAlphabet(list);
+            return;
+        }
+
+        // 14 states, 10 area max (sarawak)
+        MultiMap<String, Api> indices = new MultiMap<>();
+        Api api;
+        for (int i = 0, size = list.size(); i < size; i++) {
+            api = list.get(i);
+            indices.put(api.getState(), api);
+        }
+
+        DistanceComparator comparator = new DistanceComparator(location);
+
+        List<Api> nearestAreaInState = new ArrayList<>(14);
+        for (String state : indices.keySet()) {
+            // sort all areas in a state based on distance
+            List<Api> areaList = indices.get(state);
+            Collections.sort(areaList, comparator);
+            if (!areaList.isEmpty()) {
+                // pick the nearest and store in the list
+                nearestAreaInState.add(areaList.get(0));
+            }
+        }
+
+        // sort the nearest state as dictated by area distance
+        Collections.sort(nearestAreaInState, comparator);
+
+        List<Api> fullList = new LinkedList<>();
+        List<SimpleSectionedRecyclerViewAdapter.Section> sections = new ArrayList<>(14);
+
+        for (int i = 0, size = nearestAreaInState.size(); i < size; i++) {
+            String key = nearestAreaInState.get(i).getState();
+            sections.add(new SimpleSectionedRecyclerViewAdapter.Section(fullList.size(), key));
+            fullList.addAll(indices.get(key));
+//                    Log.i("tag", key + ": total area = " + indices.get(key).size());
+        }
+
+        SimpleAdapter apiAdapter = new SimpleAdapter(fullList);
+        mAdapter = new SimpleSectionedRecyclerViewAdapter(R.layout.list_item_location, android.R.id.text1, apiAdapter);
+        mAdapter.setSections(sections);
+        mList.setAdapter(mAdapter);
+    }
+
     /**
      * Control whether the list is being displayed.  You can make it not
      * displayed if you are waiting for the initial data to show in it.  During
@@ -166,13 +253,13 @@ public class ApiListFragment extends Fragment {
      *                new state.
      */
     private void setListShown(boolean shown, boolean animate) {
-        refreshLayout.setRefreshing(false);
+        mRefreshLayout.setRefreshing(false);
         if (BuildConfig.DEBUG) Log.d(TAG, "Setting list shown");
 
         String msg = (mList.getAdapter() == null || mList.getAdapter().getItemCount() == 0)
                 ? getString(R.string.unable_to_load_data)
                 : getString(R.string.data_loaded);
-        Snackbar.make(refreshLayout, msg, Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(mRefreshLayout, msg, Snackbar.LENGTH_SHORT).show();
 
         if ((mListContainer.getVisibility() == View.VISIBLE) == shown) {
             return;
@@ -226,7 +313,7 @@ public class ApiListFragment extends Fragment {
             List<Api> list = null;
             try {
                 URL url = new URL(dataSource);
-                urlConnection = (HttpsURLConnection) url.openConnection();
+                urlConnection = (HttpURLConnection) url.openConnection();
                 InputStream in = new BufferedInputStream(urlConnection.getInputStream());
                 reader = new InputStreamReader(in);
 

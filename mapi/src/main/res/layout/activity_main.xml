@@ -20,6 +20,7 @@
         android:layout_height="match_parent"
         android:layout_marginTop="?actionBarSize"
         app:ds_shadowDrawable="@drawable/header_shadow"
+        app:ds_shadowVisible="false"
         app:layout_behavior="me.ebernie.mapi.widget.ShadowFrameLayoutShadowBehavior" />
 
 </android.support.design.widget.CoordinatorLayout>

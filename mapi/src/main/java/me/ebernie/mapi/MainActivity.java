@@ -1,11 +1,13 @@
 package me.ebernie.mapi;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
+import me.ebernie.mapi.util.LocationHelper;
 import my.codeandroid.hazewatch.R;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
@@ -28,8 +30,15 @@ public class MainActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, ApiListFragment.newInstance())
                     .commit();
+
+            LocationHelper.attach(this);
         }
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        LocationHelper.onActivityResult(this, requestCode, resultCode, data);
+    }
 }

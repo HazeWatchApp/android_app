@@ -5,15 +5,15 @@ import com.google.gson.annotations.Expose;
 public class Coordinates {
 
     @Expose
-    private String latitude;
+    private double latitude;
     @Expose
-    private String longitude;
+    private double longitude;
 
-    public String getLatitude() {
+    public double getLatitude() {
         return latitude;
     }
 
-    public String getLongitude() {
+    public double getLongitude() {
         return longitude;
     }
 }
