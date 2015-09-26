@@ -1,29 +1,64 @@
-<?xml version="1.0" encoding="utf-8"?>
-<uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<me.ebernie.mapi.widget.FixedSwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/refreshLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/ptr_layout"
-    android:background="#eeeeee"
-    android:orientation="vertical"
-    >
-	
-    <GridView
-        android:padding="@dimen/paddingBottom"
-        android:id="@+id/gridView_api"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:horizontalSpacing="4dp"
-        android:numColumns="@integer/num_cols"
-        android:scrollbarStyle="outsideOverlay"
-        android:clipToPadding="false"
-        android:verticalSpacing="8dp" />
+    tools:context="me.ebernie.mapi.ApiListFragment">
 
-    <include
-        android:id="@+id/empty_layout"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        layout="@layout/empty"
-        android:visibility="gone" />
+    <FrameLayout
+        android:id="@+id/listContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
 
-</uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout>
+        <me.ebernie.mapi.widget.EmptyRecyclerView
+            android:id="@android:id/list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!--
+            empty view has to be wrapped in a scrollview
+            for swipetorefresh to work
+        -->
+        <ScrollView
+            android:id="@android:id/empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="@string/error"
+                android:textColor="?android:textColorSecondary"
+                android:textSize="24sp" />
+        </ScrollView>
+    </FrameLayout>
+
+    <!--<LinearLayout-->
+        <!--android:id="@+id/progressContainer"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:gravity="center"-->
+        <!--android:orientation="vertical"-->
+        <!--android:padding="16dp">-->
+
+        <!--<ImageView-->
+        <!--android:id="@+id/empty_img"-->
+        <!--android:layout_width="100dp"-->
+        <!--android:layout_height="100dp"-->
+        <!--android:layout_gravity="center"-->
+        <!--android:src="@drawable/hazeicon_blank"-->
+        <!--android:tint="@color/color_bg" />-->
+
+        <!--<ProgressBar-->
+            <!--style="?android:progressBarStyleLarge"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content" />-->
+
+    <!--</LinearLayout>-->
+</me.ebernie.mapi.widget.FixedSwipeRefreshLayout>

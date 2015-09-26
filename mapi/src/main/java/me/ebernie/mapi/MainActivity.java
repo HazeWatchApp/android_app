@@ -1,29 +1,35 @@
 package me.ebernie.mapi;
 
-import android.app.ActionBar;
-import android.app.Activity;
-import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 
 import my.codeandroid.hazewatch.R;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     @Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
+    }
 
-		ActionBar ab = getActionBar();
-		ab.setIcon(R.drawable.hazeicon);
-		ab.setTitle(null);
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-		Fragment fragment = getFragmentManager().findFragmentById(android.R.id.content);
-		if (fragment == null) {
-			fragment = new ApiListFragment();
-			getFragmentManager().beginTransaction().add(android.R.id.content, fragment)
-					.commit();
-		}
+        Toolbar toolbar = (Toolbar) findViewById(R.id.actionbar_toolbar);
+        setSupportActionBar(toolbar);
 
-	}
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.container, ApiListFragment.newInstance())
+                    .commit();
+        }
+
+    }
 
 }

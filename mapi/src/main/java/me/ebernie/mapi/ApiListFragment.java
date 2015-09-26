@@ -1,462 +1,265 @@
 package me.ebernie.mapi;
 
-import android.animation.Animator;
-import android.animation.Animator.AnimatorListener;
-import android.annotation.SuppressLint;
-import android.app.ActionBar;
-import android.app.ActionBar.OnNavigationListener;
-import android.app.Fragment;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.Typeface;
+
+import android.graphics.Rect;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.os.AsyncTaskCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.animation.LayoutAnimationController;
-import android.widget.ArrayAdapter;
-import android.widget.GridView;
-import android.widget.TextView;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import com.crashlytics.android.Crashlytics;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.TreeSet;
+import java.util.Locale;
 
-import de.keyboardsurfer.android.widget.crouton.Crouton;
-import de.keyboardsurfer.android.widget.crouton.Style;
-import me.ebernie.mapi.api.DataApi;
-import me.ebernie.mapi.db.DatabaseHelper.PersistableDataListener;
-import me.ebernie.mapi.model.AirPolutionIndex;
+import javax.net.ssl.HttpsURLConnection;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import me.ebernie.mapi.adapter.SimpleAdapter;
+import me.ebernie.mapi.adapter.SimpleSectionedRecyclerViewAdapter;
+import me.ebernie.mapi.adapter.SpacesItemDecoration;
+import me.ebernie.mapi.model.Api;
+import me.ebernie.mapi.widget.FixedSwipeRefreshLayout;
+import me.ebernie.mapi.util.MultiMap;
+import me.ebernie.mapi.widget.EmptyRecyclerView;
+import my.codeandroid.hazewatch.BuildConfig;
 import my.codeandroid.hazewatch.R;
-import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
-import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
-import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
-import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
 
-@SuppressLint("SimpleDateFormat")
-public class ApiListFragment extends Fragment implements
-        PersistableDataListener, OnNavigationListener, OnRefreshListener {
+public class ApiListFragment extends Fragment {
 
-    private Multimap<String, AirPolutionIndex> indices = HashMultimap.create();
-    private GridView grid;
-    private ArrayAdapter<String> navAdapter;
-    private ArrayList<AirPolutionIndex> tmp = new ArrayList<AirPolutionIndex>();
-    private int currentSelection = 0;
-    private Typeface robotoLightItalic = null;
-    private Typeface robotoLight = null;
-    private Typeface robotoBold = null;
-    private Animation stackFromBottom;
-    private View progressBar;
-    private TextView emptyText;
-    //	private Date updateDate = new Date();
-    private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM");
+    public static final String DATE_FORMAT = "d MMMM yyyy, EEEE";
+    private static final String TAG = ApiListFragment.class.getName();
 
-    private PullToRefreshLayout mPullToRefreshLayout;
-    private static final String PREF_KEY_STATE_SELECTION = "state_selection";
+    public static ApiListFragment newInstance() {
+        return new ApiListFragment();
 
+    }
+    @Bind(R.id.refreshLayout)
+    FixedSwipeRefreshLayout refreshLayout;
+    @Bind(R.id.listContainer)
+    View mListContainer;
+//    @Bind(R.id.progressContainer)
+//    View mProgressContainer;
+
+    @Bind(android.R.id.list)
+    EmptyRecyclerView mList;
+    @Bind(android.R.id.empty)
+    View mEmpty;
+
+    SimpleSectionedRecyclerViewAdapter mAdapter;
+
+    @Nullable
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-        setHasOptionsMenu(true);
-        robotoLightItalic = Typeface.createFromAsset(getActivity().getAssets(),
-                "fonts/Roboto-LightItalic.ttf");
-        robotoLight = Typeface.createFromAsset(getActivity().getAssets(),
-                "fonts/Roboto-Light.ttf");
-        robotoBold = Typeface.createFromAsset(getActivity().getAssets(),
-                "fonts/Roboto-Bold.ttf");
-        stackFromBottom = AnimationUtils
-                .makeInChildBottomAnimation(getActivity());
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_api_list, container, false);
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_refresh:
-                DataApi.INSTANCE.getIndex(getActivity(), this, true);
-                mPullToRefreshLayout.setRefreshing(true);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_api_list, null);
-        grid = (GridView) view.findViewById(R.id.gridView_api);
-        grid.setEmptyView(view.findViewById(R.id.empty_layout));
-        View emptyView = grid.getEmptyView();
-        emptyText = (TextView) emptyView.findViewById(R.id.empty_text);
-        emptyText.setTypeface(robotoLightItalic);
-        progressBar = emptyView.findViewById(R.id.progress);
-
-        mPullToRefreshLayout = (PullToRefreshLayout) view.findViewById(R.id.ptr_layout);
-        // Now setup the PullToRefreshLayout
-        ActionBarPullToRefresh.from(getActivity())
-                // Mark All Children as pullable
-                .allChildrenArePullable()
-                        // Set the OnRefreshListener
-                .listener(this).useViewDelegate(GridView.class, new AbsListViewDelegate())
-                // Finally commit the setup to our PullToRefreshLayout
-                .setup(mPullToRefreshLayout);
-
-        return view;
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ActionBar ab = getActivity().getActionBar();
-        ab.setListNavigationCallbacks(navAdapter, ApiListFragment.this);
-        if (!indices.isEmpty()) {
-            ab.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-            ab.setSelectedNavigationItem(currentSelection);
-        } else {
-            // async call to fetch AirPolutionIndex
-            mPullToRefreshLayout.setRefreshing(true);
-            DataApi.INSTANCE.getIndex(getActivity(), this);
-        }
+        ButterKnife.bind(this, view);
+
+        String date = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
+                .format(new Date());
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(date);
+
+        mList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+        mList.addItemDecoration(new SpacesItemDecoration(new Rect(pad, pad, pad, pad)));
+        mList.setEmptyView(mEmpty);
+        mList.setAdapter(new SimpleAdapter(new ArrayList<Api>()));
+
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if (BuildConfig.DEBUG) Log.d(TAG, "Manually refreshing");
+                fetchData();
+            }
+        });
+        refreshLayout.setScrollableView(mList);
+        refreshLayout.setRefreshing(true);
+        fetchData();
     }
 
-    class AirPolutionIndexAdapter extends ArrayAdapter<AirPolutionIndex> {
-        private final List<AirPolutionIndex> indices;
-        private final int layout;
-        private Date currentTime = new Date();
-        private Date sevenAm = new Date();
-        private Date elevenAm = new Date();
-        private Date fivePm = new Date();
-
-        public AirPolutionIndexAdapter(Context context, int textViewResourceId,
-                                       List<AirPolutionIndex> indices) {
-            super(context, textViewResourceId);
-            this.indices = indices;
-            this.layout = textViewResourceId;
-            Calendar cal = Calendar.getInstance();
-            cal.set(Calendar.HOUR_OF_DAY, 7);
-            cal.set(Calendar.MINUTE, 0);
-            sevenAm.setTime(cal.getTimeInMillis());
-            cal.set(Calendar.HOUR_OF_DAY, 11);
-            cal.set(Calendar.MINUTE, 0);
-            elevenAm.setTime(cal.getTimeInMillis());
-            cal.set(Calendar.HOUR_OF_DAY, 17);
-            cal.set(Calendar.MINUTE, 0);
-            fivePm.setTime(cal.getTimeInMillis());
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null) {
-                convertView = getActivity().getLayoutInflater().inflate(layout,
-                        null);
-                ViewHolder holder = new ViewHolder(convertView);
-                convertView.setTag(holder);
-            }
-            ViewHolder holder = (ViewHolder) convertView.getTag();
-            AirPolutionIndex index = getItem(position);
-            holder.townArea.setText(index.getArea());
-
-            if (currentTime.before(elevenAm)) {
-                holder.curTimeIndex.setText(index.getSevenAmIndex());
-                holder.curTime.setText(R.string.seven);
-                holder.curTimeIndex.setTextColor(getColor(index
-                        .getSevenAmIndex()));
-
-                holder.time1.setText(R.string.eleven);
-                holder.index1.setText(index.getElevenAmIndex());
-                holder.index1.setTextColor(getColor(index.getElevenAmIndex()));
-
-                holder.time2.setText(R.string.five);
-                holder.index2.setText(index.getFivePmIndex());
-                holder.index2.setTextColor(getColor(index.getFivePmIndex()));
-
-            } else if (currentTime.after(elevenAm)
-                    && currentTime.before(fivePm)) {
-                // if 11 am has data, just show
-                if (hasData(index.getElevenAmIndex())) {
-                    holder.curTimeIndex.setText(index.getElevenAmIndex());
-                    holder.curTime.setText(R.string.eleven);
-                    holder.curTimeIndex.setTextColor(getColor(index
-                            .getElevenAmIndex()));
-
-                    holder.time1.setText(R.string.seven);
-                    holder.index1.setText(index.getSevenAmIndex());
-                    holder.index1
-                            .setTextColor(getColor(index.getSevenAmIndex()));
-                } else {
-                    // if eleven am has no data, then show 7 am
-                    holder.curTimeIndex.setText(index.getSevenAmIndex());
-                    holder.curTime.setText(R.string.seven);
-                    holder.curTimeIndex.setTextColor(getColor(index
-                            .getSevenAmIndex()));
-                    // eleven am gets shown in the smaller display
-                    holder.time1.setText(R.string.eleven);
-                    holder.index1.setText(index.getElevenAmIndex());
-                    holder.index1.setTextColor(getColor(index
-                            .getElevenAmIndex()));
-                }
-
-                holder.time2.setText(R.string.five);
-                holder.index2.setText(index.getFivePmIndex());
-                holder.index2.setTextColor(getColor(index.getFivePmIndex()));
-
-            } else {
-                // if 5pm has data, display as usual
-                if (hasData(index.getFivePmIndex())) {
-                    holder.curTimeIndex.setText(index.getFivePmIndex());
-                    holder.curTime.setText(R.string.five);
-                    holder.curTimeIndex.setTextColor(getColor(index
-                            .getFivePmIndex()));
-
-                    holder.time1.setText(R.string.seven);
-                    holder.index1.setText(index.getSevenAmIndex());
-                    holder.index1
-                            .setTextColor(getColor(index.getSevenAmIndex()));
-
-                    holder.time2.setText(R.string.eleven);
-                    holder.index2.setText(index.getElevenAmIndex());
-                    holder.index2.setTextColor(getColor(index
-                            .getElevenAmIndex()));
-
-                } else {
-                    // if 5pm has no data, show eleven am data
-                    holder.curTimeIndex.setText(index.getElevenAmIndex());
-                    holder.curTime.setText(R.string.eleven);
-                    holder.curTimeIndex.setTextColor(getColor(index
-                            .getElevenAmIndex()));
-
-                    holder.time1.setText(R.string.seven);
-                    holder.index1.setText(index.getSevenAmIndex());
-                    holder.index1
-                            .setTextColor(getColor(index.getSevenAmIndex()));
-
-                    holder.time2.setText(R.string.five);
-                    holder.index2.setText(index.getFivePmIndex());
-                    holder.index2
-                            .setTextColor(getColor(index.getFivePmIndex()));
-
-                }
-
-            }
-
-            return convertView;
-        }
-
-        private boolean hasData(String val) {
-            return !"--".equals(val);
-        }
-
-        private int getColor(String valStr) {
-            int color = Color.parseColor("#000000");
-            int val = 0;
-            if (hasData(valStr)) {
-                val = Integer.valueOf(valStr);
-            }
-            if (val > 0 && val <= 50) {
-                color = Color.parseColor("#00a651");
-            } else if (val > 50 && val <= 100) {
-                color = Color.parseColor("#99cc00");
-            } else if (val > 100 && val <= 200) {
-                color = Color.parseColor("#ffbb33");
-            } else if (val > 200 && val <= 300) {
-                color = Color.parseColor("#ff4444");
-            } else {
-                color = Color.parseColor("#cc0000");
-            }
-
-            return color;
-        }
-
-        @Override
-        public int getCount() {
-            return indices.size();
-        }
-
-        @Override
-        public AirPolutionIndex getItem(int position) {
-            return indices.get(position);
-        }
-
-        private class ViewHolder {
-            final TextView townArea;
-            // final TextView state;
-            final TextView time1;
-            final TextView time2;
-            final TextView curTimeIndex;
-            final TextView curTime;
-            final TextView index1;
-            final TextView index2;
-
-            ViewHolder(View view) {
-                townArea = (TextView) view.findViewById(R.id.town_area);
-                townArea.setTypeface(robotoLight);
-                // state = view.findViewById(R.id.)
-                curTimeIndex = (TextView) view.findViewById(R.id.curIndex);
-                curTimeIndex.setTypeface(robotoLight);
-                index1 = (TextView) view.findViewById(R.id.index1);
-                index1.setTypeface(robotoLight);
-                index2 = (TextView) view.findViewById(R.id.index2);
-                index2.setTypeface(robotoLight);
-
-                time1 = (TextView) view.findViewById(R.id.time1);
-                time1.setTypeface(robotoLightItalic);
-                time2 = (TextView) view.findViewById(R.id.time2);
-                time2.setTypeface(robotoLightItalic);
-                curTime = (TextView) view.findViewById(R.id.curTime);
-                curTime.setTypeface(robotoLightItalic);
-            }
-        }
-
-    }
-
-    @Override
-    public void updateList(List<AirPolutionIndex> index) {
-
-        mPullToRefreshLayout.setRefreshComplete();
-
-        if (getActivity() == null) {
-            return;
-        }
-
-        ActionBar ab = getActivity().getActionBar();
-        if ((index != null && !index.isEmpty())) {
-            grid.setVisibility(View.VISIBLE);
-            LayoutAnimationController gridAnim = new LayoutAnimationController(
-                    stackFromBottom);
-            grid.setLayoutAnimation(gridAnim);
-            grid.getLayoutAnimation().start();
-            indices.clear();
-            indices.put(getString(R.string.all_states), null);
-            for (AirPolutionIndex api : index) {
-                if (api.getState() != null) {
+    private void fetchData() {
+        FetchDataTask fetchDataTask = new FetchDataTask(new FetchDataTask.DataListener() {
+            @Override
+            public void onDataReady(List<Api> list) {
+                // 14 states, 10 area max (sarawak)
+                MultiMap<String, Api> indices = new MultiMap<>();
+                Api api;
+                for (int i = 0, size = list.size(); i < size; i++) {
+                    api = list.get(i);
                     indices.put(api.getState(), api);
                 }
+
+                List<Api> fullList = new LinkedList<>();
+
+                List<SimpleSectionedRecyclerViewAdapter.Section> sections = new ArrayList<>(14);
+
+                String[] array = indices.keySet().toArray(new String[14]);
+                Arrays.sort(array);
+
+//                Log.i("tag", "total states = " + array.length);
+                for (int i = 0, size = array.length; i < size; i++) {
+                    String key = array[i];
+                    sections.add(new SimpleSectionedRecyclerViewAdapter.Section(fullList.size(), key));
+                    fullList.addAll(indices.get(key));
+//                    Log.i("tag", key + ": total area = " + indices.get(key).size());
+                }
+
+                SimpleAdapter apiAdapter = new SimpleAdapter(fullList);
+                mAdapter = new SimpleSectionedRecyclerViewAdapter(R.layout.list_item_location, android.R.id.text1, apiAdapter);
+                mAdapter.setSections(sections);
+                mList.setAdapter(mAdapter);
+
+                setListShown(true, isResumed());
             }
 
-            // prep actionbar nav list
-            ab.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-            String[] states = new String[indices.keySet().size()];
-            TreeSet<String> sort = new TreeSet<String>();
-            sort.addAll(indices.keySet());
-            sort.toArray(states);
-            navAdapter = new ArrayAdapter<String>(ab.getThemedContext(),
-                    android.R.layout.simple_spinner_dropdown_item, states);
-            ab.setListNavigationCallbacks(navAdapter, ApiListFragment.this);
-            ab.setSelectedNavigationItem(currentSelection);
-
-            indices.remove(getString(R.string.all_states), null);
-
-            SharedPreferences prefs = getActivity().getSharedPreferences(
-                    "me.ebernie.mapi", Context.MODE_PRIVATE);
-            int selection = prefs.getInt(PREF_KEY_STATE_SELECTION, 0);
-            if (selection != 0
-                    && ab.getNavigationItemCount() > currentSelection) {
-                currentSelection = selection;
-                ab.setSelectedNavigationItem(currentSelection);
+            @Override
+            public void onError() {
+                setListShown(true, isResumed());
             }
-        } else if (indices.isEmpty() && index == null) {
-            // show emptyView
-            grid.setVisibility(View.GONE);
-//			date.setVisibility(View.GONE);
-            progressBar.animate().alpha(0).setDuration(200)
-                    .setListener(new AnimatorListener() {
+        });
+        AsyncTaskCompat.executeParallel(fetchDataTask, getString(R.string.data_source));
+    }
 
-                        @Override
-                        public void onAnimationStart(Animator animation) {
-                            // TODO Auto-generated method stub
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ButterKnife.unbind(this);
+    }
 
-                        }
+    /**
+     * Control whether the list is being displayed.  You can make it not
+     * displayed if you are waiting for the initial data to show in it.  During
+     * this time an indeterminant progress indicator will be shown instead.
+     *
+     * @param shown   If true, the list view is shown; if false, the progress
+     *                indicator.  The initial value is true.
+     * @param animate If true, an animation will be used to transition to the
+     *                new state.
+     */
+    private void setListShown(boolean shown, boolean animate) {
+        refreshLayout.setRefreshing(false);
+        if (BuildConfig.DEBUG) Log.d(TAG, "Setting list shown");
 
-                        @Override
-                        public void onAnimationRepeat(Animator animation) {
-                            // TODO Auto-generated method stub
+        String msg = (mList.getAdapter() == null || mList.getAdapter().getItemCount() == 0)
+                ? getString(R.string.unable_to_load_data)
+                : getString(R.string.data_loaded);
+        Snackbar.make(refreshLayout, msg, Snackbar.LENGTH_SHORT).show();
 
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            progressBar.setVisibility(View.GONE);
-                            emptyText.setVisibility(View.VISIBLE);
-                            emptyText.animate().alpha(1).setDuration(200)
-                                    .start();
-                        }
-
-                        @Override
-                        public void onAnimationCancel(Animator animation) {
-                            // TODO Auto-generated method stub
-
-                        }
-                    }).start();
-
-            ab.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+        if ((mListContainer.getVisibility() == View.VISIBLE) == shown) {
+            return;
         }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        DataApi.INSTANCE.destroy();
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(int itemPosition, long itemId) {
-        currentSelection = itemPosition;
-        refreshScreenBasedOnSelection();
-        SharedPreferences prefs = getActivity().getSharedPreferences(
-                "me.ebernie.mapi", Context.MODE_PRIVATE);
-        prefs.edit().putInt(PREF_KEY_STATE_SELECTION, currentSelection)
-                .commit();
-        return true;
-    }
-
-    private void refreshScreenBasedOnSelection() {
-        String item = navAdapter.getItem(currentSelection);
-        tmp.clear();
-        if (getString(R.string.all_states).equals(item)) {
-            tmp.addAll(indices.values());
+        if (shown) {
+            if (animate) {
+//                mProgressContainer.startAnimation(AnimationUtils.loadAnimation(
+//                        getActivity(), android.R.anim.fade_out));
+                mListContainer.startAnimation(AnimationUtils.loadAnimation(
+                        getActivity(), android.R.anim.fade_in));
+            } else {
+//                mProgressContainer.clearAnimation();
+                mListContainer.clearAnimation();
+            }
+//            mProgressContainer.setVisibility(View.GONE);
+            mListContainer.setVisibility(View.VISIBLE);
         } else {
-            tmp.addAll(indices.get(item));
+            if (animate) {
+//                mProgressContainer.startAnimation(AnimationUtils.loadAnimation(
+//                        getActivity(), android.R.anim.fade_in));
+                mListContainer.startAnimation(AnimationUtils.loadAnimation(
+                        getActivity(), android.R.anim.fade_out));
+            } else {
+//                mProgressContainer.clearAnimation();
+                mListContainer.clearAnimation();
+            }
+//            mProgressContainer.setVisibility(View.VISIBLE);
+            mListContainer.setVisibility(View.GONE);
         }
-        Collections.sort(tmp);
-        grid.setAdapter(new AirPolutionIndexAdapter(getActivity(),
-                R.layout.fragment_api_list_row, tmp));
     }
 
-    @Override
-    public void onRefreshStarted(View view) {
-        DataApi.INSTANCE.getIndex(getActivity(), this, true);
-    }
+    private static class FetchDataTask extends AsyncTask<String, Void, List<Api>> {
 
-    @Override
-    public void setUpdateDate(Date date) {
-        Crouton.makeText(getActivity(), getString(R.string.last_update) + " "
-                + sdf.format(date), Style.INFO).show();
+        public interface DataListener {
+            void onDataReady(List<Api> list);
 
-//		this.updateDate = date;
-//		this.date.setText(getString(R.string.last_update) + " "
-//				+ sdf.format(updateDate));
-//		this.date.setVisibility(View.VISIBLE);
-//		this.isDateVisible = true;
+            void onError();
+        }
+
+        private DataListener mListener;
+
+        public FetchDataTask(DataListener listener) {
+            mListener = listener;
+        }
+
+        @Override
+        protected List<Api> doInBackground(String... params) {
+            HttpURLConnection urlConnection = null;
+            InputStreamReader reader = null;
+            String dataSource = params[0];
+            List<Api> list = null;
+            try {
+                URL url = new URL(dataSource);
+                urlConnection = (HttpsURLConnection) url.openConnection();
+                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                reader = new InputStreamReader(in);
+
+                list = new Gson().fromJson(reader, new TypeToken<ArrayList<Api>>() {
+                }.getType());
+
+            } catch (IOException e) {
+                Crashlytics.getInstance().core.logException(e);
+            } finally {
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        Crashlytics.getInstance().core.logException(e);
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        @Override
+        protected void onPostExecute(List<Api> list) {
+            if (mListener != null) {
+                if (list == null) {
+                    mListener.onError();
+                } else {
+                    mListener.onDataReady(list);
+                }
+            }
+        }
     }
 }
