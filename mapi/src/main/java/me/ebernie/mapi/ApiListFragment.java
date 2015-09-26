@@ -39,8 +39,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-import javax.net.ssl.HttpsURLConnection;
-
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import me.ebernie.mapi.adapter.SimpleAdapter;
@@ -315,7 +313,7 @@ public class ApiListFragment extends Fragment implements LocationListener {
             List<Api> list = null;
             try {
                 URL url = new URL(dataSource);
-                urlConnection = (HttpsURLConnection) url.openConnection();
+                urlConnection = (HttpURLConnection) url.openConnection();
                 InputStream in = new BufferedInputStream(urlConnection.getInputStream());
                 reader = new InputStreamReader(in);
 
