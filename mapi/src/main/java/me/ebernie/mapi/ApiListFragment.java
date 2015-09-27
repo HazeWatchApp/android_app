@@ -4,6 +4,8 @@ package me.ebernie.mapi;
 import android.content.Context;
 import android.graphics.Rect;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -36,6 +38,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,6 +69,7 @@ public class ApiListFragment extends Fragment implements LocationListener {
     private static final String TAG = ApiListFragment.class.getName();
 
     private static final float DISTANCE_DELTA_METERS = 1000f;
+    SimpleDateFormat sdf;
 
     public static ApiListFragment newInstance() {
         return new ApiListFragment();
@@ -101,7 +105,7 @@ public class ApiListFragment extends Fragment implements LocationListener {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
-
+        sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String date = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
                 .format(new Date());
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(date);
@@ -128,7 +132,7 @@ public class ApiListFragment extends Fragment implements LocationListener {
             }
         });
         File file = new File(getActivity().getFilesDir() + "/haze.json");
-        if (file.exists()) {
+        if ((!isOnline() || !isMoreThanTenMinutes()) && file.exists()) {
             loadData();
         } else {
             fetchData();
@@ -136,6 +140,32 @@ public class ApiListFragment extends Fragment implements LocationListener {
 
         LocationUtil.addLocationListener(this);
 
+    }
+
+    /**
+     * if more than 10 minutes, return true
+     * @return
+     */
+    private boolean isMoreThanTenMinutes(){
+        Date strDate = null;
+        try {
+            strDate = sdf.parse(getTimestamp());
+            return (new Date().getTime() - strDate.getTime()) > 10 * 60 * 1000;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * check if online
+     * @return boolean
+     */
+    private boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
     @Override
@@ -198,7 +228,7 @@ public class ApiListFragment extends Fragment implements LocationListener {
     }
 
     private void saveTimestamp() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
         String currentDateandTime = sdf.format(new Date());
         getActivity()
                 .getSharedPreferences("hazewatch", Context.MODE_PRIVATE)
