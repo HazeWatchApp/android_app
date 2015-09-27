@@ -114,7 +114,12 @@ public class ApiListFragment extends Fragment implements LocationListener {
         });
         mRefreshLayout.setColorSchemeColors(R.color.color_primary);
         mRefreshLayout.setSwipeableChildren(android.R.id.list, android.R.id.empty);
-        mRefreshLayout.setRefreshing(true);
+        mRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                mRefreshLayout.setRefreshing(true);
+            }
+        });
         fetchData();
 
         LocationUtil.addLocationListener(this);
