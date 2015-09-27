@@ -11,16 +11,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?colorPrimary"
-        android:minHeight="?actionBarSize"
-        app:layout_behavior="me.ebernie.mapi.widget.ToolbarShadowBehavior" />
+        android:elevation="@dimen/appbar_elevation"
+        android:minHeight="?actionBarSize" />
 
     <me.ebernie.mapi.widget.DrawShadowFrameLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="?actionBarSize"
-        app:ds_shadowDrawable="@drawable/header_shadow"
-        app:ds_shadowVisible="false"
-        app:layout_behavior="me.ebernie.mapi.widget.ShadowFrameLayoutShadowBehavior" />
+        app:ds_shadowDrawable="@drawable/header_shadow" />
 
 </android.support.design.widget.CoordinatorLayout>
