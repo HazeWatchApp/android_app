@@ -115,6 +115,7 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
     @Override
     public void onPause() {
         super.onPause();
+
     }
 
     @Override

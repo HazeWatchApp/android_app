@@ -1,8 +1,11 @@
 package me.ebernie.mapi;
 
 
+import android.content.Context;
 import android.graphics.Rect;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -25,11 +28,17 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +47,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Scanner;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -59,6 +69,7 @@ public class ApiListFragment extends Fragment implements LocationListener {
     private static final String TAG = ApiListFragment.class.getName();
 
     private static final float DISTANCE_DELTA_METERS = 1000f;
+    SimpleDateFormat sdf;
 
     public static ApiListFragment newInstance() {
         return new ApiListFragment();
@@ -94,7 +105,7 @@ public class ApiListFragment extends Fragment implements LocationListener {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
-
+        sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String date = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
                 .format(new Date());
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(date);
@@ -120,10 +131,41 @@ public class ApiListFragment extends Fragment implements LocationListener {
                 mRefreshLayout.setRefreshing(true);
             }
         });
-        fetchData();
+        File file = new File(getActivity().getFilesDir() + "/haze.json");
+        if ((!isOnline() || !isMoreThanTenMinutes()) && file.exists()) {
+            loadData();
+        } else {
+            fetchData();
+        }
 
         LocationUtil.addLocationListener(this);
 
+    }
+
+    /**
+     * if more than 10 minutes, return true
+     * @return
+     */
+    private boolean isMoreThanTenMinutes(){
+        Date strDate = null;
+        try {
+            strDate = sdf.parse(getTimestamp());
+            return (new Date().getTime() - strDate.getTime()) > 10 * 60 * 1000;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * check if online
+     * @return boolean
+     */
+    private boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
     @Override
@@ -132,18 +174,10 @@ public class ApiListFragment extends Fragment implements LocationListener {
         LocationUtil.addLocationListener(this);
     }
 
-    private void fetchData() {
-        if (mFetchDataTask != null && mFetchDataTask.getStatus() == AsyncTask.Status.RUNNING) {
-            return;
-        }
-
-        mFetchDataTask = new FetchDataTask(new FetchDataTask.DataListener() {
+    private void loadData() {
+        LoadDataTask loadDataTask = new LoadDataTask(new DataListener() {
             @Override
             public void onDataReady(List<Api> list) {
-                if (isDetached()) {
-                    return;
-                }
-
                 mApiList = list;
                 if (mLastLocation == null) {
                     sortByAlphabet(list);
@@ -159,7 +193,54 @@ public class ApiListFragment extends Fragment implements LocationListener {
                 setListShown(true, isResumed());
             }
         });
+        AsyncTaskCompat.executeParallel(loadDataTask);
+    }
+
+    private void fetchData() {
+        if (mFetchDataTask != null && mFetchDataTask.getStatus() == AsyncTask.Status.RUNNING) {
+            return;
+        }
+
+        mFetchDataTask = new FetchDataTask(new DataListener() {
+            @Override
+            public void onDataReady(List<Api> list) {
+                if (isDetached()) {
+                    return;
+                }
+
+                mApiList = list;
+                saveTimestamp();
+                if (mLastLocation == null) {
+                    sortByAlphabet(list);
+                } else {
+                    sortForDistance(list, mLastLocation);
+                }
+
+                setListShown(true, isResumed());
+            }
+
+            @Override
+            public void onError() {
+                setListShown(true, isResumed());
+            }
+        });
         AsyncTaskCompat.executeParallel(mFetchDataTask, getString(R.string.data_source));
+    }
+
+    private void saveTimestamp() {
+
+        String currentDateandTime = sdf.format(new Date());
+        getActivity()
+                .getSharedPreferences("hazewatch", Context.MODE_PRIVATE)
+                .edit()
+                .putString("last_update", currentDateandTime)
+                .apply();
+    }
+
+    private String getTimestamp(){
+        return getActivity()
+                .getSharedPreferences("hazewatch", Context.MODE_PRIVATE)
+                .getString("last_update", "");
     }
 
     @Override
@@ -277,7 +358,7 @@ public class ApiListFragment extends Fragment implements LocationListener {
 
         String msg = (mList.getAdapter() == null || mList.getAdapter().getItemCount() == 0)
                 ? getString(R.string.unable_to_load_data)
-                : getString(R.string.data_loaded);
+                : getString(R.string.data_loaded) + " " + getTimestamp();
         Snackbar.make(mRefreshLayout, msg, Snackbar.LENGTH_SHORT).show();
 
         if ((mListContainer.getVisibility() == View.VISIBLE) == shown) {
@@ -307,16 +388,17 @@ public class ApiListFragment extends Fragment implements LocationListener {
             }
 //            mProgressContainer.setVisibility(View.VISIBLE);
             mListContainer.setVisibility(View.GONE);
+
         }
     }
 
-    private static class FetchDataTask extends AsyncTask<String, Void, List<Api>> {
+    public interface DataListener {
+        void onDataReady(List<Api> list);
 
-        public interface DataListener {
-            void onDataReady(List<Api> list);
+        void onError();
+    }
 
-            void onError();
-        }
+    private class FetchDataTask extends AsyncTask<String, Void, List<Api>> {
 
         private DataListener mListener;
 
@@ -330,14 +412,21 @@ public class ApiListFragment extends Fragment implements LocationListener {
             InputStreamReader reader = null;
             String dataSource = params[0];
             List<Api> list = null;
+            FileOutputStream fileOutputStream = null;
+            ByteArrayOutputStream byteBuffer = null;
             try {
+
                 URL url = new URL(dataSource);
                 urlConnection = (HttpURLConnection) url.openConnection();
                 InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-                reader = new InputStreamReader(in);
+                String inputStreamString = new Scanner(in).useDelimiter("\\A").next();
 
-                list = new Gson().fromJson(reader, new TypeToken<ArrayList<Api>>() {
+                list = new Gson().fromJson(inputStreamString, new TypeToken<ArrayList<Api>>() {
                 }.getType());
+
+                fileOutputStream = getActivity().openFileOutput("haze.json", Context.MODE_PRIVATE);
+                fileOutputStream.write(inputStreamString.getBytes());
+
 
             } catch (IOException e) {
                 Crashlytics.getInstance().core.logException(e);
@@ -350,6 +439,73 @@ public class ApiListFragment extends Fragment implements LocationListener {
                         reader.close();
                     } catch (IOException e) {
                         Crashlytics.getInstance().core.logException(e);
+                    }
+                }
+                if (fileOutputStream != null) {
+                    try {
+                        fileOutputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (byteBuffer != null) {
+                    try {
+                        byteBuffer.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        @Override
+        protected void onPostExecute(List<Api> list) {
+            if (mListener != null) {
+                if (list == null) {
+                    mListener.onError();
+                } else {
+                    mListener.onDataReady(list);
+                }
+            }
+        }
+    }
+
+    private class LoadDataTask extends AsyncTask<String, Void, List<Api>> {
+
+        private DataListener mListener;
+
+        public LoadDataTask(DataListener listener) {
+            mListener = listener;
+        }
+
+        @Override
+        protected List<Api> doInBackground(String... params) {
+            List<Api> list = null;
+            FileInputStream fileInputStream = null;
+            InputStreamReader inputStreamReader = null;
+            try {
+                fileInputStream = getActivity().openFileInput("haze.json");
+                inputStreamReader = new InputStreamReader(fileInputStream);
+                list = new Gson().fromJson(inputStreamReader, new TypeToken<ArrayList<Api>>() {
+                }.getType());
+
+            } catch (FileNotFoundException e) {
+                Crashlytics.getInstance().core.logException(e);
+            } finally {
+                if (inputStreamReader != null) {
+                    try {
+                        inputStreamReader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (fileInputStream != null) {
+                    try {
+                        fileInputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
             }
