@@ -51,7 +51,9 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
 
             @Override
             public void onCollapse(Chart chart, int position) {
-                chart.setVisibility(View.GONE);
+//                chart.setVisibility(View.GONE);
+                // disable animation when collapse for now
+                setChartVisibilityNoAnimate(mLayoutContainer, mChart, View.GONE);
                 mExpandedPos.put(position, false);
             }
 
@@ -72,7 +74,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
         Api api = mData.get(position);
         String index = api.getLatest().getIndex();
         holder.mTownArea.setText(api.getArea());
-        
+
         if (!TextUtils.isEmpty(index) && TextUtils.isDigitsOnly(index)) {
             holder.mCurIndex.setText(index);
             holder.mCardView.setCardBackgroundColor(fetchColorForApiIndex(Integer.parseInt(index)));
@@ -80,7 +82,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
             holder.mCurIndex.setText("--");
             holder.mCardView.setCardBackgroundColor(Color.LTGRAY);
         }
-        
+
         if (mExpandedPos.get(position, false)) {
             updateChartData(holder.mChart, api);
             if (holder.mChart.getVisibility() != View.VISIBLE) {
