@@ -82,6 +82,8 @@ public class ApiListFragment extends Fragment implements LocationListener {
 
     private List<Api> mApiList = Collections.emptyList();
 
+    private FetchDataTask mFetchDataTask;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -126,9 +128,17 @@ public class ApiListFragment extends Fragment implements LocationListener {
     }
 
     private void fetchData() {
-        FetchDataTask fetchDataTask = new FetchDataTask(new FetchDataTask.DataListener() {
+        if (mFetchDataTask != null && mFetchDataTask.getStatus() == AsyncTask.Status.RUNNING) {
+            return;
+        }
+
+        mFetchDataTask = new FetchDataTask(new FetchDataTask.DataListener() {
             @Override
             public void onDataReady(List<Api> list) {
+                if (isDetached()) {
+                    return;
+                }
+
                 mApiList = list;
                 if (mLastLocation == null) {
                     sortByAlphabet(list);
@@ -144,13 +154,16 @@ public class ApiListFragment extends Fragment implements LocationListener {
                 setListShown(true, isResumed());
             }
         });
-        AsyncTaskCompat.executeParallel(fetchDataTask, getString(R.string.data_source));
+        AsyncTaskCompat.executeParallel(mFetchDataTask, getString(R.string.data_source));
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         ButterKnife.unbind(this);
+        if (mFetchDataTask != null && mFetchDataTask.getStatus() == AsyncTask.Status.RUNNING) {
+            mFetchDataTask.cancel(true);
+        }
     }
 
     @Override
@@ -337,6 +350,11 @@ public class ApiListFragment extends Fragment implements LocationListener {
             }
 
             return list;
+        }
+
+        @Override
+        protected void onCancelled() {
+            mListener = null;
         }
 
         @Override
