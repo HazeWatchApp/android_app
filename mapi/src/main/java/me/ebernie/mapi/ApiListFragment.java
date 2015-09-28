@@ -3,12 +3,12 @@ package me.ebernie.mapi;
 
 import android.graphics.Rect;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.os.AsyncTaskCompat;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,17 +19,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 
-import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.location.LocationListener;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +36,7 @@ import me.ebernie.mapi.adapter.SimpleAdapter;
 import me.ebernie.mapi.adapter.SimpleSectionedRecyclerViewAdapter;
 import me.ebernie.mapi.adapter.SpacesItemDecoration;
 import me.ebernie.mapi.model.Api;
+import me.ebernie.mapi.util.ApiListLoader;
 import me.ebernie.mapi.util.DistanceComparator;
 import me.ebernie.mapi.util.LocationUtil;
 import me.ebernie.mapi.util.MultiMap;
@@ -53,7 +45,8 @@ import me.ebernie.mapi.widget.MultiSwipeRefreshLayout;
 import my.codeandroid.hazewatch.BuildConfig;
 import my.codeandroid.hazewatch.R;
 
-public class ApiListFragment extends Fragment implements LocationListener {
+public class ApiListFragment extends Fragment implements LocationListener,
+        LoaderManager.LoaderCallbacks<List<Api>> {
 
     public static final String DATE_FORMAT = "d MMMM yyyy, EEEE";
     private static final String TAG = ApiListFragment.class.getName();
@@ -80,10 +73,6 @@ public class ApiListFragment extends Fragment implements LocationListener {
     @Nullable
     private Location mLastLocation;
 
-    private List<Api> mApiList = Collections.emptyList();
-
-    private FetchDataTask mFetchDataTask;
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -94,7 +83,6 @@ public class ApiListFragment extends Fragment implements LocationListener {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
-
         String date = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
                 .format(new Date());
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(date);
@@ -109,7 +97,7 @@ public class ApiListFragment extends Fragment implements LocationListener {
             @Override
             public void onRefresh() {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Manually refreshing");
-                fetchData();
+                getLoaderManager().initLoader(0, null, ApiListFragment.this);
             }
         });
         mRefreshLayout.setColorSchemeColors(R.color.color_primary);
@@ -120,8 +108,8 @@ public class ApiListFragment extends Fragment implements LocationListener {
                 mRefreshLayout.setRefreshing(true);
             }
         });
-        fetchData();
 
+        getLoaderManager().initLoader(0, null, this);
         LocationUtil.addLocationListener(this);
 
     }
@@ -132,51 +120,18 @@ public class ApiListFragment extends Fragment implements LocationListener {
         LocationUtil.addLocationListener(this);
     }
 
-    private void fetchData() {
-        if (mFetchDataTask != null && mFetchDataTask.getStatus() == AsyncTask.Status.RUNNING) {
-            return;
-        }
-
-        mFetchDataTask = new FetchDataTask(new FetchDataTask.DataListener() {
-            @Override
-            public void onDataReady(List<Api> list) {
-                if (isDetached()) {
-                    return;
-                }
-
-                mApiList = list;
-                if (mLastLocation == null) {
-                    sortByAlphabet(list);
-                } else {
-                    sortForDistance(list, mLastLocation);
-                }
-
-                setListShown(true, isResumed());
-            }
-
-            @Override
-            public void onError() {
-                setListShown(true, isResumed());
-            }
-        });
-        AsyncTaskCompat.executeParallel(mFetchDataTask, getString(R.string.data_source));
-    }
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         ButterKnife.unbind(this);
-        if (mFetchDataTask != null && mFetchDataTask.getStatus() == AsyncTask.Status.RUNNING) {
-            mFetchDataTask.cancel(true);
-        }
     }
 
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
             if (mLastLocation == null || mLastLocation.distanceTo(location) >= DISTANCE_DELTA_METERS) {
-                sortForDistance(mApiList, location);
                 mLastLocation = location;
+                getLoaderManager().initLoader(0, null, this);
             }
         }
     }
@@ -307,70 +262,29 @@ public class ApiListFragment extends Fragment implements LocationListener {
             }
 //            mProgressContainer.setVisibility(View.VISIBLE);
             mListContainer.setVisibility(View.GONE);
+
         }
     }
 
-    private static class FetchDataTask extends AsyncTask<String, Void, List<Api>> {
-
-        public interface DataListener {
-            void onDataReady(List<Api> list);
-
-            void onError();
-        }
-
-        private DataListener mListener;
-
-        public FetchDataTask(DataListener listener) {
-            mListener = listener;
-        }
-
-        @Override
-        protected List<Api> doInBackground(String... params) {
-            HttpURLConnection urlConnection = null;
-            InputStreamReader reader = null;
-            String dataSource = params[0];
-            List<Api> list = null;
-            try {
-                URL url = new URL(dataSource);
-                urlConnection = (HttpURLConnection) url.openConnection();
-                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-                reader = new InputStreamReader(in);
-
-                list = new Gson().fromJson(reader, new TypeToken<ArrayList<Api>>() {
-                }.getType());
-
-            } catch (IOException e) {
-                Crashlytics.getInstance().core.logException(e);
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        Crashlytics.getInstance().core.logException(e);
-                    }
-                }
-            }
-
-            return list;
-        }
-
-        @Override
-        protected void onCancelled() {
-            mListener = null;
-        }
-
-        @Override
-        protected void onPostExecute(List<Api> list) {
-            if (mListener != null) {
-                if (list == null) {
-                    mListener.onError();
-                } else {
-                    mListener.onDataReady(list);
-                }
-            }
-        }
+    @Override
+    public Loader<List<Api>> onCreateLoader(int id, Bundle args) {
+        return new ApiListLoader(getContext(), getString(R.string.data_source));
     }
+
+    @Override
+    public void onLoadFinished(Loader<List<Api>> loader, List<Api> data) {
+        if (mLastLocation == null) {
+            sortByAlphabet(data);
+        } else {
+            sortForDistance(data, mLastLocation);
+        }
+
+        setListShown(true, isResumed());
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<Api>> loader) {
+
+    }
+
 }
