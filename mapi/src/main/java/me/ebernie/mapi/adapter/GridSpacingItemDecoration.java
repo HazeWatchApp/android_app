@@ -8,14 +8,12 @@ import android.view.View;
 
 public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
 
-    private final Rect rect;
     private GridLayoutManager manager;
     private GridLayoutManager.SpanSizeLookup spanSizeLookup;
     int spacing;
 
-    public GridSpacingItemDecoration(Rect rect) {
-        this.rect = rect;
-        spacing = rect.left;
+    public GridSpacingItemDecoration(int spacing) {
+        this.spacing = spacing;
     }
 
     @Override

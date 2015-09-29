@@ -1,7 +1,6 @@
 package me.ebernie.mapi;
 
 
-import android.graphics.Rect;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -91,7 +90,7 @@ public class ApiListFragment extends Fragment implements LocationListener,
         int columnCount = getResources().getInteger(R.integer.num_cols);
         int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
 
-        mList.addItemDecoration(new GridSpacingItemDecoration(new Rect(pad, pad, pad, pad)));
+        mList.addItemDecoration(new GridSpacingItemDecoration(pad));
         mList.setLayoutManager(new GridLayoutManager(getContext(), columnCount));
         mList.setEmptyView(mEmpty);
         mList.setAdapter(new SimpleAdapter(new ArrayList<Api>()));
