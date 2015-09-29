@@ -2,15 +2,6 @@
 <resources>
 
     <string name="app_name">Haze Watch</string>
-    <string name="eleven">11 pg</string>
-    <string name="seven">7 pg</string>
-    <string name="five">5 ptg</string>
-    <string name="refresh">Kemaskini</string>
-    <string name="error">Ops, pelayan kami dilanda jerebu dan kami tidak dapat mencapai maklumat buat sementara waktu (ataupun talian anda mempunyai masalah)</string>
-    <string name="all_states">Semua negeri</string>
-    <string name="last_update">Kemaskini terbaru:</string>
-    <string name="hazewatch">Hazewatch</string>
-    <string name="dashclock_desc">Dapatkan bacaan index pencemaran (API) untuk kawasan anda</string>
-    <string name="dashclock_settings">Tetapan Hazewatch Dashclock</string>
-    
+    <string name="error">Oops, pelayan kami dilanda jerebu dan kami tidak dapat mencapai maklumat buat sementara waktu (ataupun talian anda mempunyai masalah)</string>
+
 </resources>
