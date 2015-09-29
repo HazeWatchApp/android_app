@@ -10,6 +10,9 @@ import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +26,7 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -39,7 +43,7 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
     private static final String FILE_NAME = "haze.json";
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-    private List<Api> mApps;
+    private List<Api> mApiList;
     private final String mEndpointUrl;
 
     public ApiListLoader(Context context, @NonNull String url) {
@@ -82,8 +86,8 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
             // don't need the result.
             onReleaseResources(list);
         }
-        List<Api> oldApps = mApps;
-        mApps = list;
+        List<Api> oldApps = mApiList;
+        mApiList = list;
 
         if (isStarted()) {
             // If the Loader is currently started, we can immediately
@@ -104,13 +108,13 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
      */
     @Override
     protected void onStartLoading() {
-        if (mApps != null) {
+        if (mApiList != null) {
             // If we currently have a result available, deliver it
             // immediately.
-            deliverResult(mApps);
+            deliverResult(mApiList);
         }
 
-        if (takeContentChanged() || mApps == null) {
+        if (takeContentChanged() || mApiList == null) {
             // If the data has changed since the last time it was loaded
             // or is not currently available, start a load.
             forceLoad();
@@ -150,9 +154,9 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
 
         // At this point we can release the resources associated with 'apps'
         // if needed.
-        if (mApps != null) {
-            onReleaseResources(mApps);
-            mApps = null;
+        if (mApiList != null) {
+            onReleaseResources(mApiList);
+            mApiList = null;
         }
 
     }
@@ -167,20 +171,32 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
     }
 
     /**
-     * if more than 10 minutes, return true
+     * Checks if the data is valid
      *
      * @return
      */
     private boolean isDataValid() {
         String lastUpdate = PrefUtil.getLastUpdate(getContext());
         if (TextUtils.isEmpty(lastUpdate)) {
-            return true;
+            // no record exists
+            return false;
         }
+        Date strDate = null;
         try {
-            Date strDate = sdf.parse(lastUpdate);
-            return (new Date().getTime() - strDate.getTime()) > 10 * 60 * 1000;
+            strDate = sdf.parse(lastUpdate);
         } catch (ParseException e) {
             e.printStackTrace();
+        }
+
+        if (strDate != null) {
+            Calendar now = Calendar.getInstance();
+            Calendar cal = (Calendar) now.clone();
+            cal.setTime(strDate);
+
+            if (now.get(Calendar.HOUR_OF_DAY) != cal.get(Calendar.HOUR_OF_DAY)) {
+                // if the hour is different,  assume there is an update
+                return false;
+            }
         }
         return true;
     }
@@ -234,7 +250,13 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
             InputStream in = new BufferedInputStream(urlConnection.getInputStream());
             String inputStreamString = new Scanner(in).useDelimiter("\\A").next();
 
-            list = new Gson().fromJson(inputStreamString, new TypeToken<ArrayList<Api>>() {
+            JSONObject obj = new JSONObject(inputStreamString);
+            String last_updated = obj.getString("last_updated");
+            PrefUtil.saveLastUpdate(getContext(), last_updated);
+
+            String result = obj.getString("result");
+
+            list = new Gson().fromJson(result, new TypeToken<ArrayList<Api>>() {
             }.getType());
 
             fileOutputStream = getContext().openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
@@ -242,6 +264,8 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
 
         } catch (IOException e) {
             Crashlytics.getInstance().core.logException(e);
+        } catch (JSONException e) {
+            e.printStackTrace();
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
