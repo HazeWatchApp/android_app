@@ -233,13 +233,15 @@ public class ApiListFragment extends Fragment implements LocationListener,
      *                new state.
      */
     private void setListShown(boolean shown, boolean animate) {
-        mRefreshLayout.setRefreshing(false);
         if (BuildConfig.DEBUG) Log.d(TAG, "Setting list shown");
 
-        String msg = (mList.getAdapter() == null || mList.getAdapter().getItemCount() == 0)
-                ? getString(R.string.unable_to_load_data)
-                : getString(R.string.data_loaded);
-        Snackbar.make(mRefreshLayout, msg, Snackbar.LENGTH_SHORT).show();
+        if (mRefreshLayout.isRefreshing()) {
+            String msg = (mList.getAdapter() == null || mList.getAdapter().getItemCount() == 0)
+                    ? getString(R.string.unable_to_load_data)
+                    : getString(R.string.data_loaded);
+            Snackbar.make(mRefreshLayout, msg, Snackbar.LENGTH_SHORT).show();
+        }
+        mRefreshLayout.setRefreshing(false);
 
         if ((mListContainer.getVisibility() == View.VISIBLE) == shown) {
             return;
