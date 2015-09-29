@@ -4,6 +4,12 @@ package me.ebernie.mapi.util;
 import android.content.Context;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class PrefUtil {
 
@@ -16,10 +22,21 @@ public class PrefUtil {
                 .apply();
     }
 
+    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+
     @Nullable
-    public static String getLastUpdate(Context context) {
-        return PreferenceManager.getDefaultSharedPreferences(context)
+    public static Date getLastUpdate(Context context) {
+
+        String string = PreferenceManager.getDefaultSharedPreferences(context)
                 .getString(KEY_LAST_UPDATE, null);
+
+        try {
+            return TextUtils.isEmpty(string) ? null : sdf.parse(string);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
 }

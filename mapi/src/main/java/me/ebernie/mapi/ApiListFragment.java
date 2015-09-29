@@ -39,6 +39,7 @@ import me.ebernie.mapi.util.ApiListLoader;
 import me.ebernie.mapi.util.DistanceComparator;
 import me.ebernie.mapi.util.LocationUtil;
 import me.ebernie.mapi.util.MultiMap;
+import me.ebernie.mapi.util.PrefUtil;
 import me.ebernie.mapi.widget.EmptyRecyclerView;
 import me.ebernie.mapi.widget.MultiSwipeRefreshLayout;
 import my.codeandroid.hazewatch.BuildConfig;
@@ -83,9 +84,6 @@ public class ApiListFragment extends Fragment implements LocationListener,
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
-        String date = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
-                .format(new Date());
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(date);
 
         int columnCount = getResources().getInteger(R.integer.num_cols);
         int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
@@ -286,6 +284,14 @@ public class ApiListFragment extends Fragment implements LocationListener,
         } else {
             sortForDistance(data, mLastLocation);
         }
+
+        Date lastUpdate = PrefUtil.getLastUpdate(getActivity());
+        if (lastUpdate == null) {
+            lastUpdate = new Date();
+        }
+        String date = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
+                .format(lastUpdate);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(date);
 
         setListShown(true, isResumed());
     }

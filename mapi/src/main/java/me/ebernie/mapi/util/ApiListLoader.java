@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.AsyncTaskLoader;
-import android.text.TextUtils;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
@@ -23,14 +22,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Scanner;
 
 import me.ebernie.mapi.model.Api;
@@ -42,7 +38,6 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
 
     private static final String FILE_NAME = "haze.json";
 
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
     private List<Api> mApiList;
     private final String mEndpointUrl;
 
@@ -176,22 +171,14 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
      * @return
      */
     private boolean isDataValid() {
-        String lastUpdate = PrefUtil.getLastUpdate(getContext());
-        if (TextUtils.isEmpty(lastUpdate)) {
+        Date lastUpdate = PrefUtil.getLastUpdate(getContext());
+        if (lastUpdate == null) {
             // no record exists
             return false;
-        }
-        Date strDate = null;
-        try {
-            strDate = sdf.parse(lastUpdate);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        if (strDate != null) {
+        } else {
             Calendar now = Calendar.getInstance();
             Calendar cal = (Calendar) now.clone();
-            cal.setTime(strDate);
+            cal.setTime(lastUpdate);
 
             if (now.get(Calendar.HOUR_OF_DAY) != cal.get(Calendar.HOUR_OF_DAY)) {
                 // if the hour is different,  assume there is an update
