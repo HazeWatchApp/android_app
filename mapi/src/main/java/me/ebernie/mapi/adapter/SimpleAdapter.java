@@ -189,6 +189,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
 
     public static abstract class SimpleViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
+        @Bind(R.id.card)
         CardView mCardView;
 
         @Bind(R.id.layout_container)
@@ -212,7 +213,6 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
         public SimpleViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
-            mCardView = (CardView) view;
 
             mChart.setDescription(null);
             mChart.setDrawBorders(false);

@@ -15,7 +15,12 @@
         <me.ebernie.mapi.widget.EmptyRecyclerView
             android:id="@android:id/list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="@dimen/paddingBottom"
+            android:paddingLeft="@dimen/paddingLeft"
+            android:paddingRight="@dimen/paddingRight"
+            android:paddingTop="@dimen/paddingTop" />
 
         <!--
             empty view has to be wrapped in a scrollview
