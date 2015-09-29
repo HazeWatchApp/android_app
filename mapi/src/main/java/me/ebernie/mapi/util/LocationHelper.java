@@ -247,7 +247,9 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
     }
 
     protected void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        if (mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        }
     }
 
     private AlertDialog buildRationaleDialog() {
