@@ -200,11 +200,21 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
         try {
             fileInputStream = getContext().openFileInput(FILE_NAME);
             inputStreamReader = new InputStreamReader(fileInputStream);
-            list = new Gson().fromJson(inputStreamReader, new TypeToken<ArrayList<Api>>() {
+            String inputStreamString = new Scanner(inputStreamReader).useDelimiter("\\A").next();
+
+            JSONObject obj = new JSONObject(inputStreamString);
+            String last_updated = obj.getString("last_updated");
+            PrefUtil.saveLastUpdate(getContext(), last_updated);
+
+            String result = obj.getString("result");
+
+            list = new Gson().fromJson(result, new TypeToken<ArrayList<Api>>() {
             }.getType());
 
         } catch (FileNotFoundException e) {
             Crashlytics.getInstance().core.logException(e);
+        } catch (JSONException e) {
+            e.printStackTrace();
         } finally {
             if (inputStreamReader != null) {
                 try {
