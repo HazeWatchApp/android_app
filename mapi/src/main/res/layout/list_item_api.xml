@@ -9,7 +9,8 @@
         style="@style/CardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top">
+        android:layout_gravity="top"
+        android:foreground="?selectableItemBackground">
 
         <LinearLayout
             android:id="@+id/layout_container"
@@ -49,7 +50,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@null"
-                android:minHeight="82dp"
+                android:minHeight="88dp"
                 android:visibility="gone"
                 tools:visibility="visible" />
         </LinearLayout>
