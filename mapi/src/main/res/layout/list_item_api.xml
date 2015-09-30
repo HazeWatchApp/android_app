@@ -49,7 +49,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@null"
-                android:minHeight="82dp"
+                android:minHeight="88dp"
                 android:visibility="gone"
                 tools:visibility="visible" />
         </LinearLayout>

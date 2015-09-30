@@ -12,7 +12,8 @@
         android:layout_height="wrap_content"
         android:background="?colorPrimary"
         android:elevation="@dimen/appbar_elevation"
-        android:minHeight="?actionBarSize" />
+        android:minHeight="?actionBarSize"
+        app:contentInsetStart="@dimen/appbar_title_insets_start" />
 
     <me.ebernie.mapi.widget.DrawShadowFrameLayout
         android:id="@+id/container"
