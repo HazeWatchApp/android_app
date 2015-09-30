@@ -1,14 +1,19 @@
 package me.ebernie.mapi.adapter;
 
 import android.animation.LayoutTransition;
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.graphics.Color;
+import android.os.Build;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.Chart;
@@ -239,6 +244,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
 
             view.setOnClickListener(this);
 
+            overrideLollipopHotspot();
         }
 
         @Override
@@ -247,6 +253,31 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
                 onCollapse(mChart, position);
             } else {
                 onExpand(mChart, position);
+            }
+        }
+
+        /**
+         * Workaround for displaying correct ripple hotspot.
+         * It seems to only work perfectly if its the rootview on 5.0
+         * Works on 5.1
+         */
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        private void overrideLollipopHotspot() {
+            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP
+                    && mCardView instanceof FrameLayout) {
+                itemView.setOnTouchListener(new View.OnTouchListener() {
+                    @SuppressLint("NewApi")
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        // FrameLayout getForeground() is available since API 1
+                        // but in API 23, getForeground() is now part of View
+                        // this will trigger warning that it requires M
+                        mCardView.getForeground()
+                                .setHotspot(event.getX(), event.getY());
+
+                        return false;
+                    }
+                });
             }
         }
 
