@@ -7,6 +7,7 @@ import android.support.v4.content.AsyncTaskLoader;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
@@ -36,6 +37,9 @@ import me.ebernie.mapi.model.Api;
  */
 public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
 
+    /**
+     * This file is expected to contain the List<Api> JSON data
+     */
     private static final String FILE_NAME = "haze.json";
 
     private List<Api> mApiList;
@@ -198,23 +202,18 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
         FileInputStream fileInputStream = null;
         InputStreamReader inputStreamReader = null;
         try {
+            // expected to only have List<Api>
             fileInputStream = getContext().openFileInput(FILE_NAME);
             inputStreamReader = new InputStreamReader(fileInputStream);
             String inputStreamString = new Scanner(inputStreamReader).useDelimiter("\\A").next();
-
-            JSONObject obj = new JSONObject(inputStreamString);
-            String last_updated = obj.getString("last_updated");
-            PrefUtil.saveLastUpdate(getContext(), last_updated);
-
-            String result = obj.getString("result");
-
-            list = new Gson().fromJson(result, new TypeToken<ArrayList<Api>>() {
+            list = new Gson().fromJson(inputStreamString, new TypeToken<ArrayList<Api>>() {
             }.getType());
 
         } catch (FileNotFoundException e) {
             Crashlytics.getInstance().core.logException(e);
-        } catch (JSONException e) {
+        } catch (JsonSyntaxException e) {
             e.printStackTrace();
+            Crashlytics.getInstance().core.logException(e);
         } finally {
             if (inputStreamReader != null) {
                 try {
@@ -256,13 +255,15 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
             list = new Gson().fromJson(result, new TypeToken<ArrayList<Api>>() {
             }.getType());
 
+            // only store the List<Api>
             fileOutputStream = getContext().openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
-            fileOutputStream.write(inputStreamString.getBytes());
+            fileOutputStream.write(result.getBytes());
 
         } catch (IOException e) {
             Crashlytics.getInstance().core.logException(e);
         } catch (JSONException e) {
             e.printStackTrace();
+            Crashlytics.getInstance().core.logException(e);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
