@@ -150,7 +150,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
             dataSet.setColor(Color.WHITE);
             dataSet.setDrawValues(false);
             dataSet.setScatterShape(ScatterChart.ScatterShape.CIRCLE);
-            dataSet.setScatterShapeSize(6);
+            dataSet.setScatterShapeSize(5);
 
             scatterData = new ScatterData(xVals, dataSet);
             chart.setData(scatterData);
