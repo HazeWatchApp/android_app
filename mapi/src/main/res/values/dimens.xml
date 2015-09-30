@@ -1,9 +1,9 @@
 <resources>
     <integer name="num_cols">1</integer>
-    <dimen name="paddingTop">8dp</dimen>
-    <dimen name="paddingBottom">8dp</dimen>
-    <dimen name="paddingLeft">8dp</dimen>
-    <dimen name="paddingRight">8dp</dimen>
+    <dimen name="paddingTop">16dp</dimen>
+    <dimen name="paddingBottom">16dp</dimen>
+    <dimen name="paddingLeft">16dp</dimen>
+    <dimen name="paddingRight">16dp</dimen>
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>

@@ -12,10 +12,6 @@ public class Api {
     @Expose
     private String morning;
 
-    @SerializedName("last_updated")
-    @Expose
-    private String lastUpdated;
-
     @SerializedName("lokasi")
     @Expose
     private String area;
@@ -47,10 +43,6 @@ public class Api {
 
     public String getMorning() {
         return morning;
-    }
-
-    public String getLastUpdated() {
-        return lastUpdated;
     }
 
     public String getArea() {

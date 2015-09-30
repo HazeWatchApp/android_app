@@ -16,5 +16,5 @@
 
 <resources>
     <item name="header_shadow" type="drawable">@drawable/bottom_shadow</item>
-    <item name="__leak_canary_display_activity_label" type="string">@string/app_name</item>
+    <item name="__leak_canary_display_activity_label" type="string" translatable="false">@string/app_name</item>
 </resources>

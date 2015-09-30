@@ -2,6 +2,6 @@
     <integer name="num_cols">2</integer>
     <dimen name="paddingTop">16dp</dimen>
     <dimen name="paddingBottom">16dp</dimen>
-    <dimen name="paddingLeft">64dp</dimen>
-    <dimen name="paddingRight">64dp</dimen>
+    <dimen name="paddingLeft">16dp</dimen>
+    <dimen name="paddingRight">16dp</dimen>
 </resources>

@@ -189,6 +189,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
 
     public static abstract class SimpleViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
+        @Bind(R.id.card)
         CardView mCardView;
 
         @Bind(R.id.layout_container)
@@ -212,21 +213,28 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
         public SimpleViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
-            mCardView = (CardView) view;
 
             mChart.setDescription(null);
             mChart.setDrawBorders(false);
             mChart.setDrawGridBackground(false);
             mChart.setTouchEnabled(false);
+            mChart.setNoDataText(mChart.getResources().getString(R.string.warn_no_chart_data));
+            mChart.getPaint(Chart.PAINT_INFO).setColor(Color.WHITE);
 
             YAxis leftAxis = mChart.getAxisLeft();
             leftAxis.setStartAtZero(false);
             leftAxis.setLabelCount(3, false);
+            leftAxis.setTextColor(Color.WHITE);
+            leftAxis.setGridColor(0xD9000000); // 85pc translucent black
+            leftAxis.setDrawAxisLine(false);
             mChart.getAxisRight().setEnabled(false);
 
             XAxis xAxis = mChart.getXAxis();
             xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
             xAxis.setLabelsToSkip(10);
+            xAxis.setTextColor(Color.WHITE);
+            xAxis.setDrawGridLines(false);
+            xAxis.setDrawAxisLine(false);
 
             view.setOnClickListener(this);
 

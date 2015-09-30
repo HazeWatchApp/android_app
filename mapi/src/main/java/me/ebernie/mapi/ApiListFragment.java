@@ -1,7 +1,6 @@
 package me.ebernie.mapi;
 
 
-import android.graphics.Rect;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -11,7 +10,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -32,14 +31,15 @@ import java.util.Locale;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import me.ebernie.mapi.adapter.GridSpacingItemDecoration;
 import me.ebernie.mapi.adapter.SimpleAdapter;
 import me.ebernie.mapi.adapter.SimpleSectionedRecyclerViewAdapter;
-import me.ebernie.mapi.adapter.SpacesItemDecoration;
 import me.ebernie.mapi.model.Api;
 import me.ebernie.mapi.util.ApiListLoader;
 import me.ebernie.mapi.util.DistanceComparator;
 import me.ebernie.mapi.util.LocationUtil;
 import me.ebernie.mapi.util.MultiMap;
+import me.ebernie.mapi.util.PrefUtil;
 import me.ebernie.mapi.widget.EmptyRecyclerView;
 import me.ebernie.mapi.widget.MultiSwipeRefreshLayout;
 import my.codeandroid.hazewatch.BuildConfig;
@@ -69,6 +69,7 @@ public class ApiListFragment extends Fragment implements LocationListener,
     View mEmpty;
 
     SimpleSectionedRecyclerViewAdapter mAdapter;
+    GridSpacingItemDecoration mDecorator;
 
     @Nullable
     private Location mLastLocation;
@@ -83,13 +84,12 @@ public class ApiListFragment extends Fragment implements LocationListener,
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
-        String date = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
-                .format(new Date());
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(date);
 
-        mList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        int columnCount = getResources().getInteger(R.integer.num_cols);
         int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-        mList.addItemDecoration(new SpacesItemDecoration(new Rect(pad, pad, pad, pad)));
+
+        mList.addItemDecoration(new GridSpacingItemDecoration(pad));
+        mList.setLayoutManager(new GridLayoutManager(getContext(), columnCount));
         mList.setEmptyView(mEmpty);
         mList.setAdapter(new SimpleAdapter(new ArrayList<Api>()));
 
@@ -162,10 +162,7 @@ public class ApiListFragment extends Fragment implements LocationListener,
 //                    Log.i("tag", key + ": total area = " + indices.get(key).size());
         }
 
-        SimpleAdapter apiAdapter = new SimpleAdapter(fullList);
-        mAdapter = new SimpleSectionedRecyclerViewAdapter(R.layout.list_item_location, android.R.id.text1, apiAdapter);
-        mAdapter.setSections(sections);
-        mList.setAdapter(mAdapter);
+        initAdapter(fullList, sections);
     }
 
     private void sortForDistance(List<Api> list, @Nullable Location location) {
@@ -210,9 +207,18 @@ public class ApiListFragment extends Fragment implements LocationListener,
 //                    Log.i("tag", key + ": total area = " + indices.get(key).size());
         }
 
+        initAdapter(fullList, sections);
+    }
+
+    private void initAdapter(List<Api> fullList, List<SimpleSectionedRecyclerViewAdapter.Section> sections) {
         SimpleAdapter apiAdapter = new SimpleAdapter(fullList);
         mAdapter = new SimpleSectionedRecyclerViewAdapter(R.layout.list_item_location, android.R.id.text1, apiAdapter);
         mAdapter.setSections(sections);
+        if (mList.getLayoutManager() instanceof GridLayoutManager) {
+            GridLayoutManager lm = (GridLayoutManager) mList.getLayoutManager();
+            GridSpanUpdater spanUpdater = new GridSpanUpdater(lm.getSpanCount(), mAdapter);
+            lm.setSpanSizeLookup(spanUpdater);
+        }
         mList.setAdapter(mAdapter);
     }
 
@@ -227,13 +233,15 @@ public class ApiListFragment extends Fragment implements LocationListener,
      *                new state.
      */
     private void setListShown(boolean shown, boolean animate) {
-        mRefreshLayout.setRefreshing(false);
         if (BuildConfig.DEBUG) Log.d(TAG, "Setting list shown");
 
-        String msg = (mList.getAdapter() == null || mList.getAdapter().getItemCount() == 0)
-                ? getString(R.string.unable_to_load_data)
-                : getString(R.string.data_loaded);
-        Snackbar.make(mRefreshLayout, msg, Snackbar.LENGTH_SHORT).show();
+        if (mRefreshLayout.isRefreshing()) {
+            String msg = (mList.getAdapter() == null || mList.getAdapter().getItemCount() == 0)
+                    ? getString(R.string.unable_to_load_data)
+                    : getString(R.string.data_loaded);
+            Snackbar.make(mRefreshLayout, msg, Snackbar.LENGTH_SHORT).show();
+        }
+        mRefreshLayout.setRefreshing(false);
 
         if ((mListContainer.getVisibility() == View.VISIBLE) == shown) {
             return;
@@ -279,12 +287,42 @@ public class ApiListFragment extends Fragment implements LocationListener,
             sortForDistance(data, mLastLocation);
         }
 
+        Date lastUpdate = PrefUtil.getLastUpdate(getActivity());
+        if (lastUpdate == null) {
+            lastUpdate = new Date();
+        }
+        String date = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
+                .format(lastUpdate);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(date);
+
         setListShown(true, isResumed());
     }
 
     @Override
     public void onLoaderReset(Loader<List<Api>> loader) {
 
+    }
+
+    public static class GridSpanUpdater extends GridLayoutManager.SpanSizeLookup {
+        private int columnCount;
+        private SimpleSectionedRecyclerViewAdapter adapter;
+
+        public GridSpanUpdater(int columnCount, SimpleSectionedRecyclerViewAdapter adapter) {
+
+            this.columnCount = columnCount;
+            this.adapter = adapter;
+
+            setSpanIndexCacheEnabled(true);
+        }
+
+        @Override
+        public int getSpanSize(int position) {
+            if (columnCount > 1 && adapter.isSectionHeaderPosition(position)) {
+                return columnCount;
+            }
+
+            return 1;
+        }
     }
 
 }
