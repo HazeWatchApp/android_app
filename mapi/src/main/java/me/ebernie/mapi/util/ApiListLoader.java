@@ -59,8 +59,8 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
     public List<Api> loadInBackground() {
 
         List<Api> list;
-        File file = new File(getContext().getFilesDir(), "/haze.json");
-        if ((!Util.isOnline(getContext()) || !isDataValid()) && file.exists()) {
+        File file = new File(getContext().getFilesDir(), "haze.json");
+        if ((!Util.isOnline(getContext()) || isDataValid()) && file.exists()) {
             list = loadData();
             if (list == null || list.isEmpty()) {
                 list = fetchData();
