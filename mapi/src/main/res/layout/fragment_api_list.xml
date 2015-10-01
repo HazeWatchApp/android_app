@@ -1,12 +1,11 @@
-<me.ebernie.mapi.widget.MultiSwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/refreshLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="me.ebernie.mapi.ApiListFragment">
 
-    <FrameLayout
-        android:id="@+id/listContainer"
+    <me.ebernie.mapi.widget.MultiSwipeRefreshLayout
+        android:id="@+id/refreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
@@ -43,6 +42,20 @@
                 android:textColor="?android:textColorSecondary"
                 android:textSize="24sp" />
         </android.support.v4.widget.NestedScrollView>
-    </FrameLayout>
+    </me.ebernie.mapi.widget.MultiSwipeRefreshLayout>
 
-</me.ebernie.mapi.widget.MultiSwipeRefreshLayout>
+    <LinearLayout
+        android:id="@+id/progressContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <ProgressBar
+            style="?android:progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+</FrameLayout>

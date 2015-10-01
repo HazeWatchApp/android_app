@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.AsyncTaskLoader;
+import android.text.TextUtils;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
@@ -44,10 +45,16 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
 
     private List<Api> mApiList;
     private final String mEndpointUrl;
+    private boolean isForce;
 
-    public ApiListLoader(Context context, @NonNull String url) {
+    public ApiListLoader(Context context, @NonNull String url, boolean isForce) {
         super(context);
         this.mEndpointUrl = url;
+        this.isForce = isForce;
+
+        if (TextUtils.isEmpty(url)) {
+            throw new IllegalArgumentException("Data Source URL must not be null or empty");
+        }
     }
 
     /**
@@ -59,8 +66,12 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
     public List<Api> loadInBackground() {
 
         List<Api> list;
-        File file = new File(getContext().getFilesDir(), "/haze.json");
-        if ((!Util.isOnline(getContext()) || !isDataValid()) && file.exists()) {
+        File file = new File(getContext().getFilesDir(), FILE_NAME);
+        if (isForce) {
+            list = fetchData();
+            isForce = false;
+
+        } else if ((!Util.isOnline(getContext()) || isDataValid()) && file.exists()) {
             list = loadData();
             if (list == null || list.isEmpty()) {
                 list = fetchData();
@@ -247,17 +258,16 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
             String inputStreamString = new Scanner(in).useDelimiter("\\A").next();
 
             JSONObject obj = new JSONObject(inputStreamString);
+            String result = obj.getString("result"); // only store the List<Api>
+            fileOutputStream = getContext().openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
+            fileOutputStream.write(result.getBytes());
+
+            // ensure result is stored first then save our last_updated
             String last_updated = obj.getString("last_updated");
             PrefUtil.saveLastUpdate(getContext(), last_updated);
 
-            String result = obj.getString("result");
-
             list = new Gson().fromJson(result, new TypeToken<ArrayList<Api>>() {
             }.getType());
-
-            // only store the List<Api>
-            fileOutputStream = getContext().openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
-            fileOutputStream.write(result.getBytes());
 
         } catch (IOException e) {
             Crashlytics.getInstance().core.logException(e);

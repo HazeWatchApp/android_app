@@ -16,7 +16,6 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AnimationUtils;
 
 import com.google.android.gms.location.LocationListener;
 
@@ -37,9 +36,11 @@ import me.ebernie.mapi.adapter.SimpleSectionedRecyclerViewAdapter;
 import me.ebernie.mapi.model.Api;
 import me.ebernie.mapi.util.ApiListLoader;
 import me.ebernie.mapi.util.DistanceComparator;
+import me.ebernie.mapi.util.GridSpanUpdater;
 import me.ebernie.mapi.util.LocationUtil;
 import me.ebernie.mapi.util.MultiMap;
 import me.ebernie.mapi.util.PrefUtil;
+import me.ebernie.mapi.util.Util;
 import me.ebernie.mapi.widget.EmptyRecyclerView;
 import me.ebernie.mapi.widget.MultiSwipeRefreshLayout;
 import my.codeandroid.hazewatch.BuildConfig;
@@ -55,21 +56,17 @@ public class ApiListFragment extends Fragment implements LocationListener,
 
     public static ApiListFragment newInstance() {
         return new ApiListFragment();
-
     }
 
     @Bind(R.id.refreshLayout)
     MultiSwipeRefreshLayout mRefreshLayout;
-    @Bind(R.id.listContainer)
-    View mListContainer;
+    @Bind(R.id.progressContainer)
+    View mProgressContainer;
 
     @Bind(android.R.id.list)
     EmptyRecyclerView mList;
     @Bind(android.R.id.empty)
     View mEmpty;
-
-    SimpleSectionedRecyclerViewAdapter mAdapter;
-    GridSpacingItemDecoration mDecorator;
 
     @Nullable
     private Location mLastLocation;
@@ -97,17 +94,11 @@ public class ApiListFragment extends Fragment implements LocationListener,
             @Override
             public void onRefresh() {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Manually refreshing");
-                getLoaderManager().initLoader(0, null, ApiListFragment.this);
+                getLoaderManager().restartLoader(0, null, ApiListFragment.this);
             }
         });
         mRefreshLayout.setColorSchemeColors(R.color.color_primary);
         mRefreshLayout.setSwipeableChildren(android.R.id.list, android.R.id.empty);
-        mRefreshLayout.post(new Runnable() {
-            @Override
-            public void run() {
-                mRefreshLayout.setRefreshing(true);
-            }
-        });
 
         getLoaderManager().initLoader(0, null, this);
         LocationUtil.addLocationListener(this);
@@ -212,71 +203,25 @@ public class ApiListFragment extends Fragment implements LocationListener,
 
     private void initAdapter(List<Api> fullList, List<SimpleSectionedRecyclerViewAdapter.Section> sections) {
         SimpleAdapter apiAdapter = new SimpleAdapter(fullList);
-        mAdapter = new SimpleSectionedRecyclerViewAdapter(R.layout.list_item_location, android.R.id.text1, apiAdapter);
-        mAdapter.setSections(sections);
+        SimpleSectionedRecyclerViewAdapter adapter =
+                new SimpleSectionedRecyclerViewAdapter(R.layout.list_item_location, android.R.id.text1, apiAdapter);
+        adapter.setSections(sections);
         if (mList.getLayoutManager() instanceof GridLayoutManager) {
             GridLayoutManager lm = (GridLayoutManager) mList.getLayoutManager();
-            GridSpanUpdater spanUpdater = new GridSpanUpdater(lm.getSpanCount(), mAdapter);
+            GridSpanUpdater spanUpdater = new GridSpanUpdater(lm.getSpanCount(), adapter);
             lm.setSpanSizeLookup(spanUpdater);
         }
-        mList.setAdapter(mAdapter);
+        mList.setAdapter(adapter);
     }
 
-    /**
-     * Control whether the list is being displayed.  You can make it not
-     * displayed if you are waiting for the initial data to show in it.  During
-     * this time an indeterminant progress indicator will be shown instead.
-     *
-     * @param shown   If true, the list view is shown; if false, the progress
-     *                indicator.  The initial value is true.
-     * @param animate If true, an animation will be used to transition to the
-     *                new state.
-     */
     private void setListShown(boolean shown, boolean animate) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "Setting list shown");
-
-        if (mRefreshLayout.isRefreshing()) {
-            String msg = (mList.getAdapter() == null || mList.getAdapter().getItemCount() == 0)
-                    ? getString(R.string.unable_to_load_data)
-                    : getString(R.string.data_loaded);
-            Snackbar.make(mRefreshLayout, msg, Snackbar.LENGTH_SHORT).show();
-        }
-        mRefreshLayout.setRefreshing(false);
-
-        if ((mListContainer.getVisibility() == View.VISIBLE) == shown) {
-            return;
-        }
-        if (shown) {
-            if (animate) {
-//                mProgressContainer.startAnimation(AnimationUtils.loadAnimation(
-//                        getActivity(), android.R.anim.fade_out));
-                mListContainer.startAnimation(AnimationUtils.loadAnimation(
-                        getActivity(), android.R.anim.fade_in));
-            } else {
-//                mProgressContainer.clearAnimation();
-                mListContainer.clearAnimation();
-            }
-//            mProgressContainer.setVisibility(View.GONE);
-            mListContainer.setVisibility(View.VISIBLE);
-        } else {
-            if (animate) {
-//                mProgressContainer.startAnimation(AnimationUtils.loadAnimation(
-//                        getActivity(), android.R.anim.fade_in));
-                mListContainer.startAnimation(AnimationUtils.loadAnimation(
-                        getActivity(), android.R.anim.fade_out));
-            } else {
-//                mProgressContainer.clearAnimation();
-                mListContainer.clearAnimation();
-            }
-//            mProgressContainer.setVisibility(View.VISIBLE);
-            mListContainer.setVisibility(View.GONE);
-
-        }
+        Util.setListShown(mRefreshLayout, mProgressContainer, shown, animate);
     }
 
     @Override
     public Loader<List<Api>> onCreateLoader(int id, Bundle args) {
-        return new ApiListLoader(getContext(), getString(R.string.data_source));
+        boolean isForce = mRefreshLayout.isRefreshing();
+        return new ApiListLoader(getContext(), getString(R.string.data_source), isForce);
     }
 
     @Override
@@ -295,34 +240,19 @@ public class ApiListFragment extends Fragment implements LocationListener,
                 .format(lastUpdate);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(date);
 
-        setListShown(true, isResumed());
+        setListShown(true, true);
+        if (mRefreshLayout.isRefreshing()) {
+            String msg = (mList.getAdapter() == null || mList.getAdapter().getItemCount() == 0)
+                    ? getString(R.string.unable_to_load_data)
+                    : getString(R.string.data_loaded);
+            Snackbar.make(mRefreshLayout, msg, Snackbar.LENGTH_SHORT).show();
+            mRefreshLayout.setRefreshing(false);
+        }
     }
 
     @Override
     public void onLoaderReset(Loader<List<Api>> loader) {
-
-    }
-
-    public static class GridSpanUpdater extends GridLayoutManager.SpanSizeLookup {
-        private int columnCount;
-        private SimpleSectionedRecyclerViewAdapter adapter;
-
-        public GridSpanUpdater(int columnCount, SimpleSectionedRecyclerViewAdapter adapter) {
-
-            this.columnCount = columnCount;
-            this.adapter = adapter;
-
-            setSpanIndexCacheEnabled(true);
-        }
-
-        @Override
-        public int getSpanSize(int position) {
-            if (columnCount > 1 && adapter.isSectionHeaderPosition(position)) {
-                return columnCount;
-            }
-
-            return 1;
-        }
+        /* no-op */
     }
 
 }
