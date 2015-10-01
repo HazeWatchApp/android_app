@@ -3,7 +3,7 @@
 
     <color name="color_primary_dark">#000</color>
     <color name="color_primary">#4E6A78</color>
-    <color name="color_accent">#40A33F</color>
+    <color name="color_accent">@android:color/white</color>
 
     <color name="color_bg">#4E6A78</color>
 
