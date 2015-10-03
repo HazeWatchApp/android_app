@@ -6,6 +6,7 @@ import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
 
 import io.fabric.sdk.android.Fabric;
+import me.ebernie.mapi.util.AnalyticsManager;
 import my.codeandroid.hazewatch.BuildConfig;
 import my.codeandroid.hazewatch.R;
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
@@ -31,5 +32,7 @@ public class MyApplication extends Application {
                         .setFontAttrId(R.attr.fontPath)
                         .build()
         );
+
+        AnalyticsManager.initializeAnalyticsTracker(this);
     }
 }

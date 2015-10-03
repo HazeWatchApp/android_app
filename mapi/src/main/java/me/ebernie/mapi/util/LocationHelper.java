@@ -165,6 +165,10 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
                         R.string.location_denied,
                         Snackbar.LENGTH_LONG)
                         .show();
+
+                AnalyticsManager.sendEvent(AnalyticsManager.CAT_UX,
+                        AnalyticsManager.ACTION_PERMISSION_DENIED,
+                        Manifest.permission.ACCESS_COARSE_LOCATION);
             }
         }
     }
@@ -221,6 +225,10 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
                     .getErrorDialog(getActivity(), connectionResult.getErrorCode(), REQUEST_RESOLVE_ERROR);
             mResolvingError = true;
         }
+
+        AnalyticsManager.sendEvent(AnalyticsManager.CAT_UX,
+                AnalyticsManager.ACTION_GMS_NO_RESOLUTION,
+                PlayServicesUtil.getFriendlyName(connectionResult) + ", hasResolution = " + connectionResult.hasResolution());
     }
 
     @Override
@@ -253,6 +261,8 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
     }
 
     private AlertDialog buildRationaleDialog() {
+        AnalyticsManager.sendEvent(AnalyticsManager.CAT_UX, AnalyticsManager.ACTION_SHOW_RATIONALE_DIALOG, null);
+
         return new AlertDialog.Builder(getActivity())
                 .setMessage(R.string.location_rationale)
                 .setCancelable(false)
