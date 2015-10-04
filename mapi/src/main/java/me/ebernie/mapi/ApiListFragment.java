@@ -34,6 +34,7 @@ import me.ebernie.mapi.adapter.GridSpacingItemDecoration;
 import me.ebernie.mapi.adapter.SimpleAdapter;
 import me.ebernie.mapi.adapter.SimpleSectionedRecyclerViewAdapter;
 import me.ebernie.mapi.model.Api;
+import me.ebernie.mapi.util.AnalyticsManager;
 import me.ebernie.mapi.util.ApiListLoader;
 import me.ebernie.mapi.util.DistanceComparator;
 import me.ebernie.mapi.util.GridSpanUpdater;
@@ -95,6 +96,7 @@ public class ApiListFragment extends Fragment implements LocationListener,
             public void onRefresh() {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Manually refreshing");
                 getLoaderManager().restartLoader(0, null, ApiListFragment.this);
+                AnalyticsManager.sendEvent(AnalyticsManager.CAT_UX, AnalyticsManager.ACTION_SWIPE_REFRESH, null);
             }
         });
         mRefreshLayout.setColorSchemeColors(R.color.color_primary);

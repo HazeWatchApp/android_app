@@ -40,3 +40,4 @@ local.properties
 # secret
 mapi/src/main/res/values/config.xml
 crashlytics.properties
+google-services.json

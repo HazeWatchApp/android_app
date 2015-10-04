@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
+import me.ebernie.mapi.util.AnalyticsManager;
 import me.ebernie.mapi.util.LocationHelper;
 import my.codeandroid.hazewatch.R;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
@@ -34,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
             LocationHelper.attach(this);
         }
 
+        AnalyticsManager.sendScreenView(getClass().getSimpleName());
     }
 
     @Override

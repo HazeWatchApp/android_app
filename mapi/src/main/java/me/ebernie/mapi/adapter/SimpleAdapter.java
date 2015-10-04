@@ -32,6 +32,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import me.ebernie.mapi.model.Api;
 import me.ebernie.mapi.model.Datum;
+import me.ebernie.mapi.util.AnalyticsManager;
 import my.codeandroid.hazewatch.R;
 
 public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleViewHolder> {
@@ -60,6 +61,11 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
                 // disable animation when collapse for now
                 setChartVisibilityNoAnimate(mLayoutContainer, mChart, View.GONE);
                 mExpandedPos.put(position, false);
+
+                AnalyticsManager.sendEvent(AnalyticsManager.CAT_UX,
+                        AnalyticsManager.ACTION_CLICK_COLLAPSE,
+                        mData.get(position).getArea(),
+                        position);
             }
 
             @Override
@@ -68,6 +74,11 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
                 updateChartData(chart, api);
                 chart.setVisibility(View.VISIBLE);
                 mExpandedPos.put(position, true);
+
+                AnalyticsManager.sendEvent(AnalyticsManager.CAT_UX,
+                        AnalyticsManager.ACTION_CLICK_EXPAND,
+                        mData.get(position).getArea(),
+                        position);
             }
         };
     }
