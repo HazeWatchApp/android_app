@@ -7,6 +7,8 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
 import me.ebernie.mapi.util.AnalyticsManager;
 import me.ebernie.mapi.util.LocationHelper;
 import my.codeandroid.hazewatch.R;
