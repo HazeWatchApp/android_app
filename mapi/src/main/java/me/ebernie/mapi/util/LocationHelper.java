@@ -22,9 +22,15 @@ import android.text.format.DateUtils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 import my.codeandroid.hazewatch.R;
 
@@ -33,7 +39,7 @@ import my.codeandroid.hazewatch.R;
  * and also provides Location updates
  */
 public class LocationHelper extends Fragment implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, LocationListener {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener, ResultCallback<LocationSettingsResult> {
 
     private static final String TAG = LocationHelper.class.getName();
 
@@ -73,6 +79,7 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
     private static final int PERMISSION_REQUEST_LOCATION = 44;
     // Request code to use when launching the resolution activity
     private static final int REQUEST_RESOLVE_ERROR = 1001;
+    private static final int REQUEST_CHECK_SETTINGS = 1011;
 
     // Bool to track whether the app is already resolving an error
     private boolean mResolvingError = false;
@@ -108,14 +115,8 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
     public void onResume() {
         super.onResume();
         if (mGoogleApiClient.isConnected() && !mRequestingLocationUpdates) {
-            startLocationUpdates();
+            checkLocationSettingsAndStart();
         }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
     }
 
     @Override
@@ -144,6 +145,20 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
                     mGoogleApiClient.connect();
                 }
             }
+        } else if (requestCode == REQUEST_CHECK_SETTINGS) {
+            mResolvingError = false;
+            switch (resultCode) {
+                case Activity.RESULT_OK:
+                    // All required changes were successfully made
+                case Activity.RESULT_CANCELED:
+                    // The user was asked to change settings, but chose not to
+                default:
+                    // use startLocationUpdates instead of checkLocationSettingsAndStart
+                    // dont care the user's decision, we will proceed with getting location
+                    // since users might have location but not the settings we wanted.
+                    startLocationUpdates();
+                    break;
+            }
         }
     }
 
@@ -158,7 +173,7 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
                 LocationUtil.updateLocation(location);
 
                 mRequestingLocationUpdates = true;
-                startLocationUpdates();
+                checkLocationSettingsAndStart();
             } else {
                 // Permission was denied or request was cancelled
                 Snackbar.make(getActivity().getWindow().getDecorView(),
@@ -247,10 +262,11 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
     }
 
     protected void startLocationUpdates() {
-        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi
-                    .requestLocationUpdates(mGoogleApiClient, createLocationRequest(), this);
+
+            LocationRequest request = createLocationRequest();
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, request, this);
         }
     }
 
@@ -277,4 +293,45 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
                 .create();
     }
 
+    private void checkLocationSettingsAndStart() {
+        final LocationRequest request = createLocationRequest();
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(request);
+
+        PendingResult<LocationSettingsResult> settingsResult =
+                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
+
+        settingsResult.setResultCallback(this);
+    }
+
+    @Override
+    public void onResult(LocationSettingsResult result) {
+        final Status status = result.getStatus();
+        switch (status.getStatusCode()) {
+            case LocationSettingsStatusCodes.SUCCESS:
+                // All location settings are satisfied. The client can initialize location
+                // requests here.
+                startLocationUpdates();
+                break;
+            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                // Location settings are not satisfied. But could be fixed by showing the user
+                // a dialog.
+                try {
+                    mResolvingError = true;
+                    // Show the dialog by calling startResolutionForResult(),
+                    // and check the result in onActivityResult().
+                    status.startResolutionForResult(getActivity(), REQUEST_CHECK_SETTINGS);
+                } catch (IntentSender.SendIntentException e) {
+                    // Ignore the error.
+                    e.printStackTrace();
+                }
+                break;
+            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                // Location settings are not satisfied. However, we have no way to fix the
+                // settings so we won't show the dialog.
+                startLocationUpdates();
+                break;
+        }
+
+    }
 }
