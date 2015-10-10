@@ -22,8 +22,8 @@ android {
         applicationId "my.codeandroid.hazewatch"
         minSdkVersion 14
         targetSdkVersion 23
-        versionCode 6
-        versionName "1.4a"
+        versionCode 7
+        versionName "2.0"
 
         Properties props = new Properties()
         props.load(new FileInputStream("crashlytics.properties"))
