@@ -17,12 +17,13 @@ repositories {
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
+    useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
         applicationId "my.codeandroid.hazewatch"
         minSdkVersion 14
         targetSdkVersion 23
-        versionCode 7
+        versionCode 8
         versionName "2.0"
 
         Properties props = new Properties()
@@ -32,13 +33,41 @@ android {
                 fabricApiKey: props['fabricApiKey']
         ]
     }
+
+    lintOptions {
+        checkReleaseBuilds false
+    }
+
+    // see gradle.properties in the root of the project
+    File propsFile = new File(project.property("keystore.properties.path") as String)
+    Properties props = null;
+    if (propsFile.exists()) {
+        props = new Properties()
+        props.load(new FileInputStream(propsFile))
+    }
+
+    signingConfigs {
+        release {
+            if (props) {
+                storeFile file(props['storeFile'])
+                keyAlias props['keyAlias']
+                storePassword props['storePassword']
+                keyPassword props['keyPassword']
+            }
+        }
+    }
+
     buildTypes {
 
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (props) {
+                signingConfig signingConfigs.release
+            }
         }
+
         debug {
             applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
