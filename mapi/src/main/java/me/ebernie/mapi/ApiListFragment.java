@@ -114,6 +114,12 @@ public class ApiListFragment extends Fragment implements LocationListener,
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        LocationUtil.removeLocationListener(this);
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         ButterKnife.unbind(this);
