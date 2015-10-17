@@ -264,9 +264,10 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
     protected void startLocationUpdates() {
         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-
-            LocationRequest request = createLocationRequest();
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, request, this);
+            if (mGoogleApiClient.isConnected()) {
+                LocationRequest request = createLocationRequest();
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, request, this);
+            }
         }
     }
 
@@ -294,14 +295,16 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
     }
 
     private void checkLocationSettingsAndStart() {
-        final LocationRequest request = createLocationRequest();
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(request);
+        if (mGoogleApiClient.isConnected()) {
+            final LocationRequest request = createLocationRequest();
+            LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                    .addLocationRequest(request);
 
-        PendingResult<LocationSettingsResult> settingsResult =
-                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
+            PendingResult<LocationSettingsResult> settingsResult =
+                    LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
 
-        settingsResult.setResultCallback(this);
+            settingsResult.setResultCallback(this);
+        }
     }
 
     @Override
