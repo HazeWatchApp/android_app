@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -150,7 +151,8 @@ public class ApiListFragment extends Fragment implements LocationListener,
 
         List<SimpleSectionedRecyclerViewAdapter.Section> sections = new ArrayList<>(14);
 
-        String[] array = indices.keySet().toArray(new String[14]);
+        Set<String> statesKeySet = indices.keySet();
+        String[] array = statesKeySet.toArray(new String[statesKeySet.size()]);
         Arrays.sort(array);
 
 //                Log.i("tag", "total states = " + array.length);
