@@ -8,16 +8,14 @@ import android.text.TextUtils;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -210,34 +208,33 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
         // users would need to open the app to get latest data
 
         List<Api> list = null;
-        FileInputStream fileInputStream = null;
-        InputStreamReader inputStreamReader = null;
+        BufferedReader reader = null;
         try {
             // expected to only have List<Api>
-            fileInputStream = getContext().openFileInput(FILE_NAME);
-            inputStreamReader = new InputStreamReader(fileInputStream);
-            String inputStreamString = new Scanner(inputStreamReader).useDelimiter("\\A").next();
-            list = new Gson().fromJson(inputStreamString, new TypeToken<ArrayList<Api>>() {
+            FileInputStream fileInputStream = getContext().openFileInput(FILE_NAME);
+            reader = new BufferedReader(new InputStreamReader(fileInputStream));
+
+            // read the file
+            StringBuilder sb = new StringBuilder(fileInputStream.available());
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+
+            // convert the JSON string
+            list = new Gson().fromJson(sb.toString(), new TypeToken<ArrayList<Api>>() {
             }.getType());
 
-        } catch (FileNotFoundException e) {
-            Crashlytics.getInstance().core.logException(e);
-        } catch (JsonSyntaxException e) {
-            e.printStackTrace();
-            Crashlytics.getInstance().core.logException(e);
+        } catch (Exception e) {
+            // catch all the things!
+            Crashlytics.logException(e);
         } finally {
-            if (inputStreamReader != null) {
+            if (reader != null) {
                 try {
-                    inputStreamReader.close();
+                    reader.close();
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
-            }
-            if (fileInputStream != null) {
-                try {
-                    fileInputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    Crashlytics.logException(e);
                 }
             }
         }
@@ -269,11 +266,9 @@ public class ApiListLoader extends AsyncTaskLoader<List<Api>> {
             list = new Gson().fromJson(result, new TypeToken<ArrayList<Api>>() {
             }.getType());
 
-        } catch (IOException e) {
-            Crashlytics.getInstance().core.logException(e);
-        } catch (JSONException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            Crashlytics.getInstance().core.logException(e);
+            Crashlytics.logException(e);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
