@@ -29,8 +29,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 import me.ebernie.mapi.adapter.GridSpacingItemDecoration;
 import me.ebernie.mapi.adapter.SimpleAdapter;
 import me.ebernie.mapi.adapter.SimpleSectionedRecyclerViewAdapter;
@@ -60,18 +61,20 @@ public class ApiListFragment extends Fragment implements LocationListener,
         return new ApiListFragment();
     }
 
-    @Bind(R.id.refreshLayout)
+    @BindView(R.id.refreshLayout)
     MultiSwipeRefreshLayout mRefreshLayout;
-    @Bind(R.id.progressContainer)
+    @BindView(R.id.progressContainer)
     View mProgressContainer;
 
-    @Bind(android.R.id.list)
+    @BindView(android.R.id.list)
     EmptyRecyclerView mList;
-    @Bind(android.R.id.empty)
+    @BindView(android.R.id.empty)
     View mEmpty;
 
     @Nullable
     private Location mLastLocation;
+
+    private Unbinder unbinder;
 
     @Nullable
     @Override
@@ -82,7 +85,7 @@ public class ApiListFragment extends Fragment implements LocationListener,
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ButterKnife.bind(this, view);
+        unbinder = ButterKnife.bind(this, view);
 
         int columnCount = getResources().getInteger(R.integer.num_cols);
         int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
@@ -123,7 +126,7 @@ public class ApiListFragment extends Fragment implements LocationListener,
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        ButterKnife.unbind(this);
+        unbinder.unbind();
     }
 
     @Override

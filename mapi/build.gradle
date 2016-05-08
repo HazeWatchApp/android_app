@@ -1,13 +1,16 @@
 buildscript {
     repositories {
+        jcenter()
         maven { url 'https://maven.fabric.io/public' }
     }
 
     dependencies {
-        classpath 'io.fabric.tools:gradle:1.+'
+        classpath 'io.fabric.tools:gradle:1.21.6'
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
     }
 }
 apply plugin: 'com.android.application'
+apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'io.fabric'
 
 repositories {
@@ -16,8 +19,7 @@ repositories {
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.1"
-    useLibrary 'org.apache.http.legacy'
+    buildToolsVersion "23.0.3"
 
     defaultConfig {
         applicationId "my.codeandroid.hazewatch"
@@ -78,20 +80,29 @@ android {
     }
 }
 
+ext{
+    supportLibVersion = '23.3.0'
+    gmsVersion = '8.4.0'
+}
+
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:design:23.0.1'
-    compile 'com.android.support:cardview-v7:23.0.1'
-    compile 'com.android.support:recyclerview-v7:23.0.1'
-    compile 'com.google.android.gms:play-services-location:8.1.0'
-    compile 'com.google.android.gms:play-services-analytics:8.1.0'
+    testCompile 'junit:junit:4.12'
+    compile "com.android.support:design:${supportLibVersion}"
+    compile "com.android.support:cardview-v7:${supportLibVersion}"
+    compile "com.android.support:recyclerview-v7:${supportLibVersion}"
+    compile "com.google.android.gms:play-services-location:${gmsVersion}"
+    compile "com.google.android.gms:play-services-analytics:${gmsVersion}"
 
     // new dependencies
-    compile 'com.google.code.gson:gson:2.3.1'
+    compile 'com.google.code.gson:gson:2.4'
     compile 'uk.co.chrisjenx:calligraphy:2.1.0'
-    compile 'com.jakewharton:butterknife:7.0.1'
-    compile 'com.github.PhilJay:MPAndroidChart:v2.1.4'
-    compile('com.crashlytics.sdk.android:crashlytics:2.+') {
+    compile 'com.jakewharton:butterknife:8.0.1'
+    compile 'com.github.PhilJay:MPAndroidChart:v2.2.4'
+    compile('com.crashlytics.sdk.android:crashlytics:2.5.5') {
         transitive = true;
     }
+
+    apt 'com.jakewharton:butterknife-compiler:8.0.1'
+
 }

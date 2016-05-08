@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import me.ebernie.mapi.model.Api;
 import me.ebernie.mapi.model.Datum;
@@ -169,7 +169,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
             chart.getLegend().setEnabled(false);
         }
 
-        ScatterDataSet dataSet = scatterData.getDataSetByIndex(0);
+        ScatterDataSet dataSet = (ScatterDataSet) scatterData.getDataSetByIndex(0);
         ListIterator<Entry> iterator = dataSet.getYVals().listIterator();
         for (int i = 0; i < size; i++) {
             Datum datum = data.get(i);
@@ -206,17 +206,17 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
 
     public static abstract class SimpleViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        @Bind(R.id.card)
+        @BindView(R.id.card)
         CardView mCardView;
 
-        @Bind(R.id.layout_container)
+        @BindView(R.id.layout_container)
         ViewGroup mLayoutContainer;
-        @Bind(R.id.town_area)
+        @BindView(R.id.town_area)
         TextView mTownArea;
-        @Bind(R.id.curIndex)
+        @BindView(R.id.curIndex)
         TextView mCurIndex;
 
-        @Bind(R.id.chart)
+        @BindView(R.id.chart)
         ScatterChart mChart;
 
         /**
