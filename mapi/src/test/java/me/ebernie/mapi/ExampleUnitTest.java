@@ -1,4 +1,4 @@
-package my.codeandroid.hazewatch;
+package me.ebernie.mapi;
 
 import org.junit.Test;
 
