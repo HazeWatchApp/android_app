@@ -237,7 +237,8 @@ public class LocationHelper extends Fragment implements GoogleApiClient.Connecti
         } else {
             // Show dialog using GoogleApiAvailability.getErrorDialog()
             GoogleApiAvailability.getInstance()
-                    .getErrorDialog(getActivity(), connectionResult.getErrorCode(), REQUEST_RESOLVE_ERROR);
+                    .getErrorDialog(getActivity(), connectionResult.getErrorCode(), REQUEST_RESOLVE_ERROR)
+                    .show();
             mResolvingError = true;
         }
 
