@@ -94,6 +94,7 @@ public class ApiListFragment extends Fragment implements LocationListener,
         mList.setLayoutManager(new GridLayoutManager(getContext(), columnCount));
         mList.setEmptyView(mEmpty);
         mList.setAdapter(new SimpleAdapter(new ArrayList<Api>()));
+        mList.setItemAnimator(null); // disable ItemAnimator to let TransitionManager handle anim
 
         mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
