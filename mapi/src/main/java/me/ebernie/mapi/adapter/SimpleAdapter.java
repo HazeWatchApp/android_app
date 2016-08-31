@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.graphics.Color;
 import android.os.Build;
+import android.support.transition.TransitionManager;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -51,16 +52,15 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
         return R.layout.list_item_api;
     }
 
-    public SimpleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public SimpleViewHolder onCreateViewHolder(final ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(viewType, parent, false);
         return new SimpleViewHolder(view) {
 
             @Override
             public void onCollapse(Chart chart, int position) {
-//                chart.setVisibility(View.GONE);
-                // disable animation when collapse for now
-                setChartVisibilityNoAnimate(mLayoutContainer, mChart, View.GONE);
                 mExpandedPos.put(position, false);
+                TransitionManager.beginDelayedTransition(parent);
+                notifyItemChanged(getAdapterPosition());
 
                 AnalyticsManager.sendEvent(AnalyticsManager.CAT_UX,
                         AnalyticsManager.ACTION_CLICK_COLLAPSE,
@@ -70,10 +70,9 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
 
             @Override
             public void onExpand(Chart chart, int position) {
-                Api api = mData.get(position);
-                updateChartData(chart, api);
-                chart.setVisibility(View.VISIBLE);
                 mExpandedPos.put(position, true);
+                TransitionManager.beginDelayedTransition(parent);
+                notifyItemChanged(getAdapterPosition());
 
                 AnalyticsManager.sendEvent(AnalyticsManager.CAT_UX,
                         AnalyticsManager.ACTION_CLICK_EXPAND,
@@ -84,7 +83,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
     }
 
     @Override
-    public void onBindViewHolder(SimpleViewHolder holder, final int position) {
+    public void onBindViewHolder(SimpleViewHolder holder, int position) {
         holder.position = position;
 
         Api api = mData.get(position);
@@ -103,12 +102,12 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
             updateChartData(holder.mChart, api);
             if (holder.mChart.getVisibility() != View.VISIBLE) {
                 // should expand but is in collapsed mode, expand it
-                setChartVisibilityNoAnimate(holder.mLayoutContainer, holder.mChart, View.VISIBLE);
+                holder.mChart.setVisibility(View.VISIBLE);
             }
         } else {
             if (holder.mChart.getVisibility() == View.VISIBLE) {
                 // should be in collapsed mode but its expanded, collapse it
-                setChartVisibilityNoAnimate(holder.mLayoutContainer, holder.mChart, View.GONE);
+                holder.mChart.setVisibility(View.GONE);
             }
         }
     }

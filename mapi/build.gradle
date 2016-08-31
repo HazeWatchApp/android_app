@@ -18,8 +18,8 @@ repositories {
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "24.0.1"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.2"
 
     defaultConfig {
         applicationId "my.codeandroid.hazewatch"
@@ -81,7 +81,7 @@ android {
 }
 
 ext {
-    supportLibVersion = '23.3.0'
+    supportLibVersion = '24.2.0'
     gmsVersion = '8.4.0'
 }
 
@@ -89,6 +89,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile "com.android.support:design:${supportLibVersion}"
+    compile "com.android.support:transition:${supportLibVersion}"
     compile "com.android.support:cardview-v7:${supportLibVersion}"
     compile "com.android.support:recyclerview-v7:${supportLibVersion}"
     compile "com.google.android.gms:play-services-location:${gmsVersion}"
