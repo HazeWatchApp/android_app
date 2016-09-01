@@ -5,7 +5,11 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.graphics.Color;
 import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.transition.AutoTransition;
+import android.support.transition.Transition;
 import android.support.transition.TransitionManager;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -41,6 +45,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
     private List<Api> mData;
 
     private final SparseBooleanArray mExpandedPos;
+    Transition expandCollapse;
 
     public SimpleAdapter(List<Api> data) {
         mData = data;
@@ -53,13 +58,20 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
     }
 
     public SimpleViewHolder onCreateViewHolder(final ViewGroup parent, int viewType) {
+        if (expandCollapse == null) {
+            expandCollapse = new AutoTransition();
+            expandCollapse.setInterpolator(new FastOutSlowInInterpolator());
+            expandCollapse.addListener(new InterceptingTransition(parent));
+            expandCollapse.setDuration(parent.getResources().getInteger(android.R.integer.config_shortAnimTime));
+        }
+
         View view = LayoutInflater.from(parent.getContext()).inflate(viewType, parent, false);
         return new SimpleViewHolder(view) {
 
             @Override
             public void onCollapse(Chart chart, int position) {
                 mExpandedPos.put(position, false);
-                TransitionManager.beginDelayedTransition(parent);
+                TransitionManager.beginDelayedTransition(parent, expandCollapse);
                 notifyItemChanged(getAdapterPosition());
 
                 AnalyticsManager.sendEvent(AnalyticsManager.CAT_UX,
@@ -71,7 +83,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
             @Override
             public void onExpand(Chart chart, int position) {
                 mExpandedPos.put(position, true);
-                TransitionManager.beginDelayedTransition(parent);
+                TransitionManager.beginDelayedTransition(parent, expandCollapse);
                 notifyItemChanged(getAdapterPosition());
 
                 AnalyticsManager.sendEvent(AnalyticsManager.CAT_UX,
@@ -294,5 +306,47 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.SimpleView
         public abstract void onExpand(Chart chart, int position);
 
         public abstract void onCollapse(Chart chart, int position);
+    }
+
+    private static class InterceptingTransition implements Transition.TransitionListener {
+
+        View.OnTouchListener touchBlackHole = new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return true;
+            }
+        };
+
+        private ViewGroup parent;
+
+        public InterceptingTransition(ViewGroup parent) {
+            this.parent = parent;
+        }
+
+        @Override
+        public void onTransitionStart(@NonNull Transition transition) {
+            parent.setOnTouchListener(touchBlackHole);
+        }
+
+        @Override
+        public void onTransitionEnd(@NonNull Transition transition) {
+            parent.setOnTouchListener(null);
+        }
+
+        @Override
+        public void onTransitionCancel(@NonNull Transition transition) {
+
+        }
+
+        @Override
+        public void onTransitionPause(@NonNull Transition transition) {
+
+        }
+
+        @Override
+        public void onTransitionResume(@NonNull Transition transition) {
+
+        }
+
     }
 }
