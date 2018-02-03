@@ -12,10 +12,9 @@
         android:fullBackupContent="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name="me.ebernie.mapi.MainActivity"
-            android:label="@string/app_name">
+        <activity android:name="me.ebernie.mapi.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -26,4 +25,5 @@
             android:name="io.fabric.ApiKey"
             android:value="${fabricApiKey}" />
     </application>
+
 </manifest>

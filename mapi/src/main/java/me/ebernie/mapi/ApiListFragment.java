@@ -104,7 +104,7 @@ public class ApiListFragment extends Fragment implements LocationListener,
                 AnalyticsManager.sendEvent(AnalyticsManager.CAT_UX, AnalyticsManager.ACTION_SWIPE_REFRESH, null);
             }
         });
-        mRefreshLayout.setColorSchemeColors(R.color.color_primary);
+        mRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
         mRefreshLayout.setSwipeableChildren(android.R.id.list, android.R.id.empty);
 
         getLoaderManager().initLoader(0, null, this);
